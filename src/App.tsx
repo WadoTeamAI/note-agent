@@ -19,6 +19,9 @@ import ABTestPanel from './components/abtest/ABTestPanel';
 import ABTestResultDisplay from './components/abtest/ABTestResultDisplay';
 import { abtestService } from './services/abtest/abtestService';
 import { ABTestResult, ABTestVersion, VariationType } from './types/abtest.types';
+import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
+import { AnalyticsService } from './services/analytics/analyticsService';
+import { InteractionType } from './types/analytics.types';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -41,9 +44,11 @@ const App: React.FC = () => {
     const [showABTestPanel, setShowABTestPanel] = useState<boolean>(false);
     const [abtestResult, setAbtestResult] = useState<ABTestResult | null>(null);
     const [isABTestRunning, setIsABTestRunning] = useState<boolean>(false);
+    const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState<boolean>(false);
     
     // 承認ワークフローマネージャーの初期化
     const workflowManager = useRef(new ApprovalWorkflowManager());
+    const analyticsService = useRef(new AnalyticsService());
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -60,6 +65,11 @@ const App: React.FC = () => {
         setOutput(null);
         setCurrentStep(ProcessStep.IDLE);
 
+        // 分析用のタイミング記録
+        const stepTimings: Record<string, number> = {};
+        const errors: any[] = [];
+        const startTime = performance.now();
+
         try {
             // 承認ワークフローを作成
             const workflowId = await workflowManager.current.createWorkflow({
@@ -74,7 +84,9 @@ const App: React.FC = () => {
 
             // Step 1: SEO分析
             setCurrentStep(ProcessStep.ANALYZING);
+            const stepStartTime = performance.now();
             const analysis = await geminiService.analyzeSerpResults(formData.keyword);
+            stepTimings.analyzing = performance.now() - stepStartTime;
 
             // Step 2: 記事構成生成
             setCurrentStep(ProcessStep.OUTLINING);
@@ -162,11 +174,28 @@ const App: React.FC = () => {
             // 承認ワークフローパネルを表示
             setShowApprovalWorkflow(true);
 
+            // 分析データを記録
+            try {
+                await analyticsService.current.trackArticleGeneration(
+                    formData,
+                    finalOutput,
+                    stepTimings,
+                    errors
+                );
+            } catch (analyticsError) {
+                console.warn('Analytics tracking failed:', analyticsError);
+            }
+
         } catch (err) {
             console.error(err);
             const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました。';
             setError(`エラー: ${errorMessage}`);
             setCurrentStep(ProcessStep.ERROR);
+            
+            // エラーを分析サービスに記録
+            if (err instanceof Error) {
+                analyticsService.current.trackError(err, { formData, stepTimings });
+            }
         } finally {
             setIsLoading(false);
         }
@@ -302,6 +331,12 @@ const App: React.FC = () => {
                                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
                             >
                                 👥 承認フロー
+                            </button>
+                            <button
+                                onClick={() => setShowAnalyticsDashboard(true)}
+                                className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors font-medium"
+                            >
+                                📊 分析
                             </button>
                         </div>
                     </div>
@@ -450,6 +485,12 @@ const App: React.FC = () => {
                     onComplete={handleApprovalWorkflowComplete}
                 />
             )}
+
+            {/* 分析ダッシュボード */}
+            <AnalyticsDashboard
+                isOpen={showAnalyticsDashboard}
+                onClose={() => setShowAnalyticsDashboard(false)}
+            />
 
         </div>
     );

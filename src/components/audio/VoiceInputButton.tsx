@@ -1,10 +1,12 @@
+'use client';
+
 /**
  * 音声入力ボタンコンポーネント
  * マイクボタンと音声認識の状態表示
  */
 
 import React, { useState, useEffect } from 'react';
-import { speechRecognitionService, SpeechRecognitionResult } from '../../services/audio/speechRecognitionService';
+import { getSpeechRecognitionService, SpeechRecognitionResult } from '../../services/audio/speechRecognitionService';
 
 interface VoiceInputButtonProps {
   onTranscript: (transcript: string) => void;
@@ -26,11 +28,16 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // クライアントサイドでのみ実行
+    if (typeof window === 'undefined') return;
+
+    const service = getSpeechRecognitionService();
+    
     // 音声認識サポート確認
-    setIsSupported(speechRecognitionService.getIsSupported());
+    setIsSupported(service.getIsSupported());
 
     // コールバック設定
-    speechRecognitionService.onResult((result: SpeechRecognitionResult) => {
+    service.onResult((result: SpeechRecognitionResult) => {
       if (result.isFinal) {
         setFinalTranscript(prev => prev + ' ' + result.transcript);
         setCurrentTranscript('');
@@ -40,7 +47,7 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
       }
     });
 
-    speechRecognitionService.onError((errorMessage: string) => {
+    service.onError((errorMessage: string) => {
       setError(errorMessage);
       setIsRecording(false);
       if (onError) {
@@ -51,7 +58,7 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
     return () => {
       // クリーンアップ
       if (isRecording) {
-        speechRecognitionService.stopRecording();
+        service.stopRecording();
       }
     };
   }, [onTranscript, onError, isRecording]);
@@ -65,7 +72,8 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
     }
 
     // マイク権限を確認
-    const hasPermission = await speechRecognitionService.requestMicrophonePermission();
+    const service = getSpeechRecognitionService();
+    const hasPermission = await service.requestMicrophonePermission();
     if (!hasPermission) {
       const errorMsg = 'マイクの使用許可が必要です';
       setError(errorMsg);
@@ -76,7 +84,7 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
     setError(null);
     setCurrentTranscript('');
     
-    const started = speechRecognitionService.startRecording({
+    const started = service.startRecording({
       language: 'ja-JP',
       continuous: true,
       interimResults: true,
@@ -89,7 +97,8 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
   };
 
   const handleStopRecording = () => {
-    speechRecognitionService.stopRecording();
+    const service = getSpeechRecognitionService();
+    service.stopRecording();
     setIsRecording(false);
     
     // 最終的なテキストを結合して返す

@@ -93,19 +93,19 @@ const ABTestPanel: React.FC<ABTestPanelProps> = ({ formData, onClose, onStart })
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <span className="text-gray-600 dark:text-gray-400">キーワード:</span>
-                <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{formData.keyword}</span>
+                <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{formData?.keyword || '-'}</span>
               </div>
               <div>
                 <span className="text-gray-600 dark:text-gray-400">文体:</span>
-                <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{formData.tone}</span>
+                <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{formData?.tone || '-'}</span>
               </div>
               <div>
                 <span className="text-gray-600 dark:text-gray-400">読者層:</span>
-                <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{formData.audience}</span>
+                <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{formData?.audience || '-'}</span>
               </div>
               <div>
                 <span className="text-gray-600 dark:text-gray-400">目標文字数:</span>
-                <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{formData.targetLength.toLocaleString()}字</span>
+                <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">{formData?.targetLength?.toLocaleString() || '0'}字</span>
               </div>
             </div>
           </div>
@@ -202,4 +202,5 @@ const ABTestPanel: React.FC<ABTestPanelProps> = ({ formData, onClose, onStart })
   );
 };
 
+export { ABTestPanel };
 export default ABTestPanel;

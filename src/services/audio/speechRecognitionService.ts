@@ -36,13 +36,20 @@ export class SpeechRecognitionService {
   private onErrorCallback?: (error: string) => void;
 
   constructor() {
-    this.initializeSpeechRecognition();
+    if (typeof window !== 'undefined') {
+      this.initializeSpeechRecognition();
+    }
   }
 
   /**
    * 音声認識を初期化
    */
   private initializeSpeechRecognition(): void {
+    // SSRでは実行しない
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // ブラウザサポートチェック
     const SpeechRecognition = 
       (window as any).SpeechRecognition || 
@@ -335,5 +342,12 @@ export class SpeechRecognitionService {
   }
 }
 
-// シングルトンインスタンス
-export const speechRecognitionService = new SpeechRecognitionService();
+// シングルトンインスタンス（遅延初期化）
+let _speechRecognitionService: SpeechRecognitionService | null = null;
+
+export const getSpeechRecognitionService = (): SpeechRecognitionService => {
+  if (!_speechRecognitionService) {
+    _speechRecognitionService = new SpeechRecognitionService();
+  }
+  return _speechRecognitionService;
+};

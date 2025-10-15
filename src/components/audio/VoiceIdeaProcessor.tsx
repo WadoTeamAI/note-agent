@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * 音声アイデア処理コンポーネント
  * 音声入力されたアイデアをAIで分析・整理
@@ -5,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { VoiceInputButton } from './VoiceInputButton';
-import { speechRecognitionService, VoiceIdeaResult } from '../../services/audio/speechRecognitionService';
+import { getSpeechRecognitionService, VoiceIdeaResult } from '../../services/audio/speechRecognitionService';
 import { FormData, Tone, Audience } from '../../types';
 
 interface VoiceIdeaProcessorProps {
@@ -33,7 +35,8 @@ export const VoiceIdeaProcessor: React.FC<VoiceIdeaProcessorProps> = ({
 
     try {
       console.log('VoiceIdeaProcessor: 音声アイデア処理開始');
-      const result = await speechRecognitionService.processVoiceIdea(transcript);
+      const service = getSpeechRecognitionService();
+      const result = await service.processVoiceIdea(transcript);
       
       if (result) {
         console.log('VoiceIdeaProcessor: 処理成功', result);

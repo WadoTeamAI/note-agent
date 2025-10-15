@@ -103,9 +103,13 @@
   - ワンクリックコピー機能（個別・一括）
   - 美しいタブUIで分類表示
 
-- 🎙️ **音声入力対応**
-  - スマホ・PCから音声でアイデアを入力
-  - インタビュー音声から記事自動生成
+- ✓ **音声入力対応** ✅ **実装完了**
+  - Web Speech APIによるリアルタイム音声認識
+  - Gemini AIで音声アイデアを自動分析・整理
+  - キーワード、タイトル、読者層、文体、文字数を自動推奨
+  - Chrome/Edge/Safari対応
+  - リアルタイム文字起こし表示
+  - マイク権限管理とエラーハンドリング
 
 - ✓ **複数バージョン生成（A/Bテスト）** ✅ **実装完了**
   - 2〜5パターンの記事を並行生成
@@ -488,6 +492,9 @@ note-agent/
 │   │   │   ├── ABTestVersionCard.tsx # バージョンカード
 │   │   │   ├── ABTestResultDisplay.tsx # 結果表示
 │   │   │   └── ABTestComparisonView.tsx # バージョン比較
+│   │   ├── audio/
+│   │   │   ├── VoiceIdeaProcessor.tsx # 音声アイデア処理
+│   │   │   └── VoiceInputButton.tsx # 音声入力ボタン
 │   │   ├── theme/
 │   │   │   └── ThemeToggle.tsx      # ダークモード切り替え
 │   │   └── feedback/
@@ -511,6 +518,8 @@ note-agent/
 │   │   │   └── diagramService.ts    # Mermaid図解生成
 │   │   ├── abtest/
 │   │   │   └── abtestService.ts     # A/Bテストサービス
+│   │   ├── audio/
+│   │   │   └── speechRecognitionService.ts # 音声認識サービス
 │   │   └── api/                     # 将来の外部API
 │   │
 │   ├── hooks/                       # カスタムReactフック
@@ -530,7 +539,8 @@ note-agent/
 │   │   ├── draft.types.ts           # 下書き関連の型
 │   │   ├── seo.types.ts             # SEO関連の型
 │   │   ├── theme.types.ts           # テーマ関連の型
-│   │   └── abtest.types.ts          # A/Bテスト関連の型
+│   │   ├── abtest.types.ts          # A/Bテスト関連の型
+│   │   └── speech.types.ts          # 音声認識関連の型
 │   │
 │   ├── config/                      # 設定
 │   │   ├── constants.ts
@@ -646,7 +656,7 @@ UI表示・コピー機能
 - ✅ **ダークモード** - 完了！
 - ✅ **リアルタイムプレビュー（note風デザイン）** - 完了！
 - ✅ **複数バージョン生成（A/Bテスト）** - 完了！
-- ⚪ **音声入力対応**
+- ✅ **音声入力対応（Web Speech API / Gemini Audio）** - 完了！
 - ⚪ スレッド形式展開
 - ⚪ 10,000文字対応
 - ⚪ **読みやすさ/SEOスコア表示**

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { Tone, Audience, FormData, FinalOutput, ProcessStep } from '@/types';
 import { TONE_OPTIONS, AUDIENCE_OPTIONS } from '@/config/constants';
 import * as geminiService from '@/services/ai/geminiService';
@@ -11,13 +12,22 @@ import StepIndicator from '@/components/feedback/StepIndicator';
 import OutputDisplay from '@/components/display/OutputDisplay';
 import BatchGenerator from '@/components/batch/BatchGenerator';
 import TrendingTopicsPanel from '@/components/news/TrendingTopicsPanel';
-import { VoiceIdeaProcessor } from '@/components/audio/VoiceIdeaProcessor';
-import ThemeToggle from '@/components/theme/ThemeToggle';
 import { ArticleGenerationSuggestion } from '@/types/news.types';
 import ApprovalWorkflowPanel from '@/components/approval/ApprovalWorkflowPanel';
 import { ApprovalWorkflowManager } from '@/services/approval/approvalWorkflow';
 import { ApprovalWorkflow, StepType, OutlineApprovalData, ContentApprovalData, ImageApprovalData, XPostApprovalData } from '@/types/approval.types';
 import { ABTestPanel } from '@/components/abtest/ABTestPanel';
+
+// Dynamic imports for client-side only components
+const VoiceIdeaProcessor = dynamic(
+  () => import('@/components/audio/VoiceIdeaProcessor').then(mod => ({ default: mod.VoiceIdeaProcessor })),
+  { ssr: false }
+);
+
+const ThemeToggle = dynamic(
+  () => import('@/components/theme/ThemeToggle'),
+  { ssr: false }
+);
 
 export default function HomePage() {
     const [formData, setFormData] = useState<FormData>({

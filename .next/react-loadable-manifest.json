@@ -208,5 +208,17 @@
     "files": [
       "static/chunks/_app-pages-browser_node_modules_mermaid_dist_chunks_mermaid_core_xychartDiagram-PRI3JC2R_mjs.js"
     ]
+  },
+  "app/page.tsx -> @/components/audio/VoiceIdeaProcessor": {
+    "id": "app/page.tsx -> @/components/audio/VoiceIdeaProcessor",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_audio_VoiceIdeaProcessor_tsx.js"
+    ]
+  },
+  "app/page.tsx -> @/components/theme/ThemeToggle": {
+    "id": "app/page.tsx -> @/components/theme/ThemeToggle",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_theme_ThemeToggle_tsx.js"
+    ]
   }
 }
