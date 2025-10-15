@@ -21,6 +21,8 @@ export * from './theme.types';
 export type { DiagramResult } from '../services/diagram/diagramService';
 // 音声認識関連の型を再エクスポート
 export * from './speech.types';
+// A/Bテスト関連の型を再エクスポート
+export * from './abtest.types';
 
 export enum Tone {
   POLITE = '丁寧で落ち着いた',

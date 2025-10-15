@@ -15,6 +15,10 @@ import { ArticleGenerationSuggestion } from './types/news.types';
 import ApprovalWorkflowPanel from './components/approval/ApprovalWorkflowPanel';
 import { ApprovalWorkflowManager } from './services/approval/approvalWorkflow';
 import { ApprovalWorkflow, StepType, OutlineApprovalData, ContentApprovalData, ImageApprovalData, XPostApprovalData } from './types/approval.types';
+import ABTestPanel from './components/abtest/ABTestPanel';
+import ABTestResultDisplay from './components/abtest/ABTestResultDisplay';
+import { abtestService } from './services/abtest/abtestService';
+import { ABTestResult, ABTestVersion, VariationType } from './types/abtest.types';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -34,6 +38,9 @@ const App: React.FC = () => {
     const [showVoiceProcessor, setShowVoiceProcessor] = useState<boolean>(false);
     const [showApprovalWorkflow, setShowApprovalWorkflow] = useState<boolean>(false);
     const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(null);
+    const [showABTestPanel, setShowABTestPanel] = useState<boolean>(false);
+    const [abtestResult, setAbtestResult] = useState<ABTestResult | null>(null);
+    const [isABTestRunning, setIsABTestRunning] = useState<boolean>(false);
     
     // 承認ワークフローマネージャーの初期化
     const workflowManager = useRef(new ApprovalWorkflowManager());
@@ -212,6 +219,38 @@ const App: React.FC = () => {
         alert('記事の承認が完了しました！公開準備に進んでください。');
     };
 
+    const handleABTestStart = async (versionCount: number, variationTypes: VariationType[]) => {
+        setShowABTestPanel(false);
+        setIsABTestRunning(true);
+        setError(null);
+
+        try {
+            const result = await abtestService.runABTest({
+                keyword: formData.keyword,
+                tone: formData.tone,
+                audience: formData.audience,
+                targetLength: formData.targetLength,
+                imageTheme: formData.imageTheme,
+                versionCount,
+                variationTypes,
+            });
+
+            setAbtestResult(result);
+        } catch (err) {
+            console.error('A/Bテスト実行エラー:', err);
+            setError(err instanceof Error ? err.message : 'A/Bテストの実行に失敗しました');
+        } finally {
+            setIsABTestRunning(false);
+        }
+    };
+
+    const handleABTestVersionSelect = (version: ABTestVersion) => {
+        if (version.output) {
+            setOutput(version.output);
+            setAbtestResult(null);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 text-gray-800 font-sans relative overflow-hidden">
             {/* Animated Background */}
@@ -233,6 +272,12 @@ const App: React.FC = () => {
                                 className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium"
                             >
                                 🎙️ 音声入力
+                            </button>
+                            <button
+                                onClick={() => setShowABTestPanel(true)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            >
+                                🧪 A/Bテスト
                             </button>
                             <button
                                 onClick={() => setShowTrendingPanel(true)}
@@ -344,6 +389,40 @@ const App: React.FC = () => {
                 onClose={() => setShowVoiceProcessor(false)}
                 onIdeaProcessed={handleVoiceIdeaProcessed}
             />
+
+            {/* A/Bテストパネル */}
+            {showABTestPanel && (
+                <ABTestPanel 
+                    formData={formData}
+                    onClose={() => setShowABTestPanel(false)}
+                    onStart={handleABTestStart}
+                />
+            )}
+
+            {/* A/Bテスト結果表示 */}
+            {abtestResult && (
+                <ABTestResultDisplay
+                    result={abtestResult}
+                    onClose={() => setAbtestResult(null)}
+                    onSelectVersion={handleABTestVersionSelect}
+                />
+            )}
+
+            {/* A/Bテスト実行中表示 */}
+            {isABTestRunning && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+                    <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl text-center max-w-md">
+                        <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mb-4"></div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                            🧪 A/Bテスト実行中
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            複数バージョンの記事を生成しています...<br />
+                            完了まで数分かかる場合があります
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* 履歴パネル - Phase 2で実装予定 */}
             {/* <HistoryPanel

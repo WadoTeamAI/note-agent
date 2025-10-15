@@ -218,6 +218,75 @@ JSON形式で記事構成を作成（体験談・事例・エピソードを含�
     return JSON.parse(jsonText);
 }
 
+export async function createArticleOutlineWithInstructions(
+    analysis: any,
+    audience: Audience,
+    tone: Tone,
+    keyword: string,
+    specialInstructions: string
+): Promise<ArticleOutline> {
+    const prompt = `SEO分析結果: ${JSON.stringify(analysis, null, 2)}
+
+キーワード: "${keyword}"
+想定読者: ${audience}
+文体: ${tone}
+特別指示: ${specialInstructions}
+
+上記の特別指示に従って、SEO分析結果を基に記事構成案を作成してください。
+
+要件:
+1. SEOキーワードを自然に組み込む
+2. 読者のニーズを満たす内容構成
+3. 特別指示の要件を満たす構成
+4. FAQは3-5個程度
+
+出力形式: JSON`;
+
+    return await withRetry(async () => {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        title: { type: Type.STRING, description: "記事タイトル" },
+                        metaDescription: { type: Type.STRING, description: "メタディスクリプション（160文字以内）" },
+                        introduction: { type: Type.STRING, description: "導入文" },
+                        sections: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    heading: { type: Type.STRING, description: "見出し" },
+                                    content: { type: Type.STRING, description: "セクションの内容概要" },
+                                },
+                                required: ["heading", "content"],
+                            },
+                        },
+                        faq: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    question: { type: Type.STRING, description: "よくある質問の質問文" },
+                                    answer: { type: Type.STRING, description: "質問に対する回答の要約" },
+                                },
+                                 required: ["question", "answer"],
+                            },
+                        },
+                    },
+                    required: ["title", "metaDescription", "introduction", "sections", "faq"],
+                },
+            },
+        });
+
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText);
+    }, '特別指示付き記事構成案生成');
+}
+
 export async function writeArticle(outline: ArticleOutline, targetLength: number, tone: Tone, audience: Audience): Promise<string> {
     const sectionsText = outline.sections.map(s => `## ${s.heading}\n${s.content}`).join('\n\n');
     const faqText = outline.faq.map(f => `- Q: ${f.question}\n- A: ${f.answer}`).join('\n');

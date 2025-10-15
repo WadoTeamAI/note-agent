@@ -17,8 +17,12 @@ const TrendingTopicsPanel: React.FC<TrendingTopicsPanelProps> = ({
     const [suggestions, setSuggestions] = useState<ArticleGenerationSuggestion[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [selectedTimeframe, setSelectedTimeframe] = useState<number>(24);
+    const [serviceStatus, setServiceStatus] = useState<{
+        newsApiConfigured: boolean;
+        fallbackMode: boolean;
+    } | null>(null);
 
-    const rssService = new RSSService();
+    const hybridNewsService = new HybridNewsService();
     const trendAnalyzer = new TrendAnalyzer();
 
     useEffect(() => {
@@ -30,12 +34,18 @@ const TrendingTopicsPanel: React.FC<TrendingTopicsPanelProps> = ({
         setError(null);
         
         try {
-            // 最新ニュースを取得
-            const articles = await rssService.getLatestNews(100);
+            // サービス状態を取得
+            const status = hybridNewsService.getServiceStatus();
+            setServiceStatus(status);
+
+            // 最新ニュースを取得（HybridNewsServiceを使用）
+            const articles = await hybridNewsService.getLatestNews(100);
             
             if (articles.length === 0) {
-                throw new Error('ニュース記事を取得できませんでした');
+                throw new Error('ニュース記事を取得できませんでした。NewsAPIキーが設定されていない場合は、RSS フィードから記事を取得します。');
             }
+
+            console.log(`Successfully fetched ${articles.length} articles`);
 
             // トレンド分析
             const newsInsight = await trendAnalyzer.analyzeTrends(articles, selectedTimeframe);
@@ -48,6 +58,7 @@ const TrendingTopicsPanel: React.FC<TrendingTopicsPanelProps> = ({
             }
 
         } catch (err) {
+            console.error('Failed to load trending topics:', err);
             const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました';
             setError(errorMessage);
         } finally {
@@ -85,6 +96,22 @@ const TrendingTopicsPanel: React.FC<TrendingTopicsPanelProps> = ({
                         <p className="text-gray-600 text-sm mt-1">
                             最新ニュースから注目トピックを分析し、記事アイデアを提案します
                         </p>
+                        {serviceStatus && (
+                            <div className="mt-2 flex items-center space-x-2">
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    serviceStatus.newsApiConfigured 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                    {serviceStatus.newsApiConfigured ? '🌐 NewsAPI接続' : '📡 RSS フィード'}
+                                </div>
+                                {serviceStatus.fallbackMode && (
+                                    <span className="text-xs text-gray-500">
+                                        (フォールバックモード)
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                     <button
                         onClick={onClose}

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { Theme, ThemeContextValue } from '../types/theme.types';
 
@@ -12,13 +14,19 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // LocalStorageから保存されたテーマを取得（デフォルトはsystem）
   const [theme, setThemeState] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    return (savedTheme as Theme) || Theme.SYSTEM;
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      return (savedTheme as Theme) || Theme.SYSTEM;
+    }
+    return Theme.SYSTEM;
   });
 
   // システムのダークモード設定を取得
   const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>(() => {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
   });
 
   // 実際に適用されるテーマ（systemの場合はシステム設定に従う）
@@ -27,20 +35,24 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   // システムのダークモード設定を監視
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = (e: MediaQueryListEvent) => {
-      setSystemPreference(e.matches ? 'dark' : 'light');
-    };
+    if (typeof window !== 'undefined') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      const handleChange = (e: MediaQueryListEvent) => {
+        setSystemPreference(e.matches ? 'dark' : 'light');
+      };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
   }, []);
 
   // テーマをLocalStorageに保存
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    }
   };
 
   // テーマをトグル（light <-> dark）
@@ -55,13 +67,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   // HTMLのdata-theme属性を更新
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', effectiveTheme);
-    
-    // ダークモードクラスも追加（Tailwindとの互換性）
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    if (typeof window !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', effectiveTheme);
+      
+      // ダークモードクラスも追加（Tailwindとの互換性）
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, [effectiveTheme, isDark]);
 

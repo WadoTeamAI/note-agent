@@ -107,9 +107,14 @@
   - スマホ・PCから音声でアイデアを入力
   - インタビュー音声から記事自動生成
 
-- 🔄 **複数バージョン生成**
-  - ストーリーテリング型/ハウツー型/データドリブン型など
-  - A/Bテストで最適な記事を選択
+- ✓ **複数バージョン生成（A/Bテスト）** ✅ **実装完了**
+  - 2〜5パターンの記事を並行生成
+  - 5種類のバリエーション（文体/文字数/構成/切り口/ターゲット）
+  - バージョン間の詳細比較分析
+  - 読みやすさ・SEO・エンゲージメントスコア表示
+  - 推奨バージョンの自動選択
+  - note風プレビューで各バージョンを確認
+  - 並列表示・重ね表示の比較モード
 
 - ✓ **ダークモード** ✅ **実装完了**
   - ライト/ダーク/システム設定の3モード対応
@@ -119,7 +124,7 @@
   - 右上のThemeToggleボタンで簡単切り替え
   - CSS変数による柔軟なテーマ管理t
 
-- ✓ **リアルタイムプレビュー** ✅ **実装完了**
+Phase 1.5: Next.js 14への移行検討（App Router、パフォーマンス最適化）- ✓ **リアルタイムプレビュー** ✅ **実装完了**
   - note.com風の美しいタイポグラフィとレイアウト
   - Markdownから自動的にHTML変換
   - プレビュー/Markdown表示の切り替え
@@ -478,6 +483,11 @@ note-agent/
 │   │   │   └── DiagramDisplay.tsx   # Mermaid図解表示
 │   │   ├── preview/
 │   │   │   └── NoteStylePreview.tsx # note風プレビュー
+│   │   ├── abtest/
+│   │   │   ├── ABTestPanel.tsx      # A/Bテスト設定パネル
+│   │   │   ├── ABTestVersionCard.tsx # バージョンカード
+│   │   │   ├── ABTestResultDisplay.tsx # 結果表示
+│   │   │   └── ABTestComparisonView.tsx # バージョン比較
 │   │   ├── theme/
 │   │   │   └── ThemeToggle.tsx      # ダークモード切り替え
 │   │   └── feedback/
@@ -499,6 +509,8 @@ note-agent/
 │   │   │   └── keywordGeneratorService.ts # SEOキーワード生成
 │   │   ├── diagram/
 │   │   │   └── diagramService.ts    # Mermaid図解生成
+│   │   ├── abtest/
+│   │   │   └── abtestService.ts     # A/Bテストサービス
 │   │   └── api/                     # 将来の外部API
 │   │
 │   ├── hooks/                       # カスタムReactフック
@@ -517,7 +529,8 @@ note-agent/
 │   │   ├── factcheck.types.ts       # ファクトチェック関連の型
 │   │   ├── draft.types.ts           # 下書き関連の型
 │   │   ├── seo.types.ts             # SEO関連の型
-│   │   └── theme.types.ts           # テーマ関連の型
+│   │   ├── theme.types.ts           # テーマ関連の型
+│   │   └── abtest.types.ts          # A/Bテスト関連の型
 │   │
 │   ├── config/                      # 設定
 │   │   ├── constants.ts
@@ -632,8 +645,8 @@ UI表示・コピー機能
 - ✅ **差し込み図解生成（Mermaid.js）** - 完了！
 - ✅ **ダークモード** - 完了！
 - ✅ **リアルタイムプレビュー（note風デザイン）** - 完了！
+- ✅ **複数バージョン生成（A/Bテスト）** - 完了！
 - ⚪ **音声入力対応**
-- ⚪ **複数バージョン生成（A/Bテスト）**
 - ⚪ スレッド形式展開
 - ⚪ 10,000文字対応
 - ⚪ **読みやすさ/SEOスコア表示**
