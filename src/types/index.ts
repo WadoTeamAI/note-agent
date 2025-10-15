@@ -13,6 +13,10 @@ export * from './social.types';
 export * from './factcheck.types';
 // 下書き関連の型を再エクスポート
 export * from './draft.types';
+// SEO関連の型を再エクスポート
+export * from './seo.types';
+// 図解関連の型を再エクスポート
+export type { DiagramResult } from '../services/diagram/diagramService';
 
 export enum Tone {
   POLITE = '丁寧で落ち着いた',
@@ -45,6 +49,7 @@ export enum ProcessStep {
   OUTLINING = '記事構成案の作成中...',
   WRITING = '記事本文の執筆中...',
   FACT_CHECKING = 'ファクトチェック中...',
+  GENERATING_DIAGRAMS = '図解生成中...',
   GENERATING_IMAGE = '画像生成中...',
   GENERATING_X_POSTS = 'X告知文生成中...',
   DONE = '完了',

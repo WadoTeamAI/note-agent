@@ -25,6 +25,7 @@ export interface FinalOutput {
   xPosts?: XPostGenerationResult;
   researchData?: ResearchData;
   factCheckSummary?: import('./factcheck.types').FactCheckSummary;
+  seoKeywordSet?: import('./seo.types').SEOKeywordSet;
 }
 
 export interface ResearchData {

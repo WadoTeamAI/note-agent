@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Tone, Audience, FormData, FinalOutput, ProcessStep } from './types';
-import { TONE_OPTIONS, AUDIENCE_OPTIONS, isYouTubeURL } from './config/constants';
-import * as geminiService from './services/ai/geminiService';
-import { generateXPosts } from './services/social/xPostGenerator';
-import { extractClaims, performFactCheck } from './services/research/tavilyService';
+import { Tone, Audience, FormData } from './types';
+import { TONE_OPTIONS, AUDIENCE_OPTIONS } from './config/constants';
+import { useArticleGeneration } from './hooks/useArticleGeneration';
 import InputGroup from './components/forms/InputGroup';
 import StepIndicator from './components/feedback/StepIndicator';
 import OutputDisplay from './components/display/OutputDisplay';
+import DiagramDisplay from './components/display/DiagramDisplay';
 import BatchGenerator from './components/batch/BatchGenerator';
+import TrendingTopicsPanel from './components/news/TrendingTopicsPanel';
+import { ArticleGenerationSuggestion } from './types/news.types';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -16,13 +17,24 @@ const App: React.FC = () => {
         audience: Audience.BEGINNER,
         targetLength: 2500,
         imageTheme: 'PC作業をする人',
+        imageOptions: {
+            eyecatch: true,
+            inlineGraphics: true
+        }
     });
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [currentStep, setCurrentStep] = useState<ProcessStep>(ProcessStep.IDLE);
-    const [output, setOutput] = useState<FinalOutput | null>(null);
-    const [error, setError] = useState<string | null>(null);
     const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
     const [showBatchGenerator, setShowBatchGenerator] = useState<boolean>(false);
+    const [showTrendingPanel, setShowTrendingPanel] = useState<boolean>(false);
+    
+    const { 
+        isLoading, 
+        currentStep, 
+        output, 
+        diagrams, 
+        error, 
+        generateArticle, 
+        reset 
+    } = useArticleGeneration();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -32,95 +44,37 @@ const App: React.FC = () => {
         }));
     };
 
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            imageOptions: {
+                ...prev.imageOptions,
+                [name]: checked
+            }
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setIsLoading(true);
-        setError(null);
-        setOutput(null);
-        setCurrentStep(ProcessStep.IDLE);
+        await generateArticle(formData);
+    };
 
-        try {
-            // Step 0: 統合リサーチ
-            setCurrentStep(ProcessStep.RESEARCH);
-            // TODO: 統合リサーチ機能の実装
-            
-            // Step 1: SEO分析
-            setCurrentStep(ProcessStep.ANALYZING);
-            const analysis = await geminiService.analyzeSerpResults(formData.keyword);
-
-            // Step 2: 記事構成生成
-            setCurrentStep(ProcessStep.OUTLINING);
-            const outline = await geminiService.createArticleOutline(analysis, formData.audience, formData.tone, formData.keyword);
-            
-            // Step 3: 本文生成
-            setCurrentStep(ProcessStep.WRITING);
-            const markdownContent = await geminiService.writeArticle(outline, formData.targetLength, formData.tone, formData.audience);
-            
-            // Step 4: ファクトチェック
-            setCurrentStep(ProcessStep.FACT_CHECKING);
-            const claims = await extractClaims(markdownContent, formData.keyword);
-            const factCheckSummary = await performFactCheck({
-                articleContent: markdownContent,
-                claims: claims,
-                keyword: formData.keyword,
-            });
-            
-            // Step 5: 画像生成
-            setCurrentStep(ProcessStep.GENERATING_IMAGE);
-            const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, formData.imageTheme);
-            const imageUrl = await geminiService.generateImage(imagePrompt);
-
-            // Step 6: X告知文生成
-            setCurrentStep(ProcessStep.GENERATING_X_POSTS);
-            const xPosts = await generateXPosts({
-                keyword: formData.keyword,
-                articleTitle: outline.title,
-                articleSummary: outline.metaDescription,
-                tone: formData.tone,
-                targetAudiences: ['初心者', '中級者', 'ビジネスパーソン', '主婦・主夫', '学生'],
-            });
-
-            const finalOutput = { 
-                markdownContent, 
-                imageUrl, 
-                metaDescription: outline.metaDescription,
-                xPosts,
-                factCheckSummary
-            };
-            
-            setOutput(finalOutput);
-            setCurrentStep(ProcessStep.DONE);
-
-            // 履歴保存（Supabase利用可能な場合）- Phase 2で実装予定
-            // const startTime = Date.now();
-            // const generationTimeMs = Date.now() - startTime;
-            
-            // try {
-            //     await saveArticleHistory({
-            //         inputKeyword: formData.keyword,
-            //         inputTone: formData.tone,
-            //         inputAudience: formData.audience,
-            //         inputTargetLength: formData.targetLength,
-            //         inputImageTheme: formData.imageTheme,
-            //         finalOutput,
-            //         analysisData: analysis,
-            //         outlineData: outline,
-            //         generationTimeMs,
-            //         workflowSteps: ['ANALYZING', 'OUTLINING', 'WRITING', 'FACT_CHECKING', 'GENERATING_IMAGE', 'GENERATING_X_POSTS'],
-            //     });
-            //     console.log('記事履歴を保存しました');
-            // } catch (historyError) {
-            //     console.warn('履歴保存に失敗:', historyError);
-            // }
-
-        } catch (err) {
-            console.error(err);
-            const errorMessage = err instanceof Error ? err.message : '不明なエラーが発生しました。';
-            setError(`エラー: ${errorMessage}`);
-            setCurrentStep(ProcessStep.ERROR);
-        } finally {
-            setIsLoading(false);
-        }
+    const handleSuggestionSelect = (suggestion: ArticleGenerationSuggestion) => {
+        // 提案された記事の設定をフォームに反映
+        setFormData(prev => ({
+            ...prev,
+            keyword: suggestion.keyword,
+            // 読者層を推定してマッピング
+            audience: suggestion.targetAudience.includes('初心者') ? Audience.BEGINNER : 
+                     suggestion.targetAudience.includes('ビジネス') ? Audience.BUSINESS_PERSON : 
+                     Audience.GENERAL
+        }));
+        
+        setShowTrendingPanel(false);
+        
+        // 自動的に記事生成を開始（オプション）
+        // generateArticle(newFormData);
     };
 
     return (
@@ -138,6 +92,12 @@ const App: React.FC = () => {
                             <p className="text-gray-600 text-lg font-medium">noteの記事作成をAIで自動化し、あなたの執筆活動をサポートします</p>
                         </div>
                         <div className="flex space-x-3">
+                            <button
+                                onClick={() => setShowTrendingPanel(true)}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                            >
+                                📈 トレンド
+                            </button>
                             <button
                                 onClick={() => setShowBatchGenerator(true)}
                                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
@@ -170,6 +130,38 @@ const App: React.FC = () => {
                                 <InputGroup label="目安文字数" id="targetLength" type="number" value={formData.targetLength} onChange={handleChange} />
                                 <InputGroup label="画像テーマ" id="imageTheme" value={formData.imageTheme} onChange={handleChange} placeholder="例: PC作業をする人、カフェで読書する女性" />
 
+                                {/* 画像生成オプション */}
+                                <div className="space-y-3">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                        画像生成オプション
+                                    </label>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center space-x-3">
+                                            <input
+                                                type="checkbox"
+                                                name="eyecatch"
+                                                checked={formData.imageOptions?.eyecatch || false}
+                                                onChange={handleCheckboxChange}
+                                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                            />
+                                            <span className="text-sm text-gray-700">アイキャッチ画像を生成</span>
+                                        </label>
+                                        <label className="flex items-center space-x-3">
+                                            <input
+                                                type="checkbox"
+                                                name="inlineGraphics"
+                                                checked={formData.imageOptions?.inlineGraphics || false}
+                                                onChange={handleCheckboxChange}
+                                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                            />
+                                            <span className="text-sm text-gray-700">📊 記事内図解を自動生成（Mermaid.js）</span>
+                                        </label>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        💡 記事内図解では、プロセス図、比較表、タイムラインなどを自動生成します
+                                    </p>
+                                </div>
+
                                 <button 
                                     type="submit" 
                                     disabled={isLoading} 
@@ -196,7 +188,17 @@ const App: React.FC = () => {
                         ) : null}
 
                         {output && !isLoading ? (
-                            <OutputDisplay output={output} />
+                            <div className="space-y-8">
+                                <OutputDisplay output={output} />
+                                {diagrams.length > 0 && (
+                                    <DiagramDisplay 
+                                        diagrams={diagrams}
+                                        onCopyDiagram={(diagram) => {
+                                            console.log('Diagram copied:', diagram.title);
+                                        }}
+                                    />
+                                )}
+                            </div>
                         ) : !isLoading && !error && currentStep === ProcessStep.IDLE ? (
                             <div className="backdrop-blur-lg bg-white/70 p-8 md:p-12 rounded-2xl shadow-xl border border-white/20 text-center">
                                 <div className="mb-6">

@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ArticleOutline, Audience, Tone } from '../../types';
 import { analyzeSearchResults } from '../research/searchService';
+import { diagramService, DiagramResult } from '../diagram/diagramService';
 
 // 環境変数の確認とバリデーション
 function validateEnvironment() {
@@ -338,4 +339,91 @@ Style requirements:
         const base64Svg = btoa(placeholderSvg);
         return `data:image/svg+xml;base64,${base64Svg}`;
     }
+}
+
+/**
+ * 記事コンテンツから図解を生成
+ */
+export async function generateDiagrams(content: string): Promise<DiagramResult[]> {
+    try {
+        // 記事内容を分析して図解を自動生成
+        const diagrams = await diagramService.generateDiagramsFromContent(content);
+        
+        // 生成された図解が少ない場合は、AIに追加の図解を提案してもらう
+        if (diagrams.length < 2) {
+            const additionalDiagrams = await generateAdditionalDiagrams(content);
+            diagrams.push(...additionalDiagrams);
+        }
+
+        return diagrams;
+    } catch (error) {
+        console.error('Error generating diagrams:', error);
+        return [];
+    }
+}
+
+/**
+ * AIに図解の提案を依頼
+ */
+async function generateAdditionalDiagrams(content: string): Promise<DiagramResult[]> {
+    return withRetry(async () => {
+        const model = ai.getGenerativeModel({ model: MODELS.fast });
+        
+        const prompt = `以下の記事内容を分析し、読者の理解を深めるために効果的な図解を3つまで提案してください。
+
+記事内容:
+${content.substring(0, 2000)}...
+
+各図解について以下の形式でJSON配列として回答してください:
+[
+  {
+    "type": "flowchart|sequence|pie|timeline|mindmap",
+    "title": "図解のタイトル",
+    "description": "図解の説明",
+    "mermaidCode": "実際のMermaidコード",
+    "insertAfterParagraph": 挿入推奨段落番号
+  }
+]
+
+条件:
+- 記事内容に最も適した図解タイプを選択
+- Mermaidの正しい構文を使用
+- 日本語でわかりやすいラベルを付ける
+- 記事の流れに沿った挿入位置を提案`;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        
+        try {
+            const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+            if (!jsonMatch) return [];
+            
+            const proposedDiagrams = JSON.parse(jsonMatch[0]);
+            const diagrams: DiagramResult[] = [];
+            
+            for (const proposed of proposedDiagrams) {
+                try {
+                    // Mermaidコードを検証してSVGに変換
+                    const svgContent = await diagramService.renderMermaidToSVG(proposed.mermaidCode);
+                    
+                    diagrams.push({
+                        type: proposed.type,
+                        title: proposed.title,
+                        description: proposed.description,
+                        mermaidCode: proposed.mermaidCode,
+                        svgContent,
+                        insertPosition: proposed.insertAfterParagraph
+                    });
+                } catch (error) {
+                    console.warn('Failed to render proposed diagram:', error);
+                    // エラーが発生した図解はスキップ
+                }
+            }
+            
+            return diagrams;
+        } catch (parseError) {
+            console.warn('Failed to parse diagram proposals:', parseError);
+            return [];
+        }
+    }, 'AI図解提案生成');
 }

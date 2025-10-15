@@ -279,7 +279,7 @@ export class DiagramService {
   /**
    * Mermaidコードを SVG に変換
    */
-  private async renderMermaidToSVG(mermaidCode: string): Promise<string> {
+  async renderMermaidToSVG(mermaidCode: string): Promise<string> {
     try {
       // 一意のIDを生成
       const id = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

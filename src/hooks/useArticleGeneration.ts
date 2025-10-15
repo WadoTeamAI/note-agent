@@ -4,13 +4,14 @@
  */
 
 import { useState, useCallback } from 'react';
-import { FormData, FinalOutput, ProcessStep } from '../types';
+import { FormData, FinalOutput, ProcessStep, DiagramResult } from '../types';
 import * as geminiService from '../services/ai/geminiService';
 
 interface UseArticleGenerationReturn {
   isLoading: boolean;
   currentStep: ProcessStep;
   output: FinalOutput | null;
+  diagrams: DiagramResult[];
   error: string | null;
   generateArticle: (formData: FormData) => Promise<void>;
   reset: () => void;
@@ -20,12 +21,14 @@ export function useArticleGeneration(): UseArticleGenerationReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<ProcessStep>(ProcessStep.IDLE);
   const [output, setOutput] = useState<FinalOutput | null>(null);
+  const [diagrams, setDiagrams] = useState<DiagramResult[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const generateArticle = useCallback(async (formData: FormData) => {
     setIsLoading(true);
     setError(null);
     setOutput(null);
+    setDiagrams([]);
     setCurrentStep(ProcessStep.IDLE);
 
     try {
@@ -55,7 +58,15 @@ export function useArticleGeneration(): UseArticleGenerationReturn {
         formData.audience
       );
       
-      // Step 4: 画像生成
+      // Step 4: 図解生成（imageOptions.inlineGraphicsが有効な場合）
+      let generatedDiagrams: DiagramResult[] = [];
+      if (formData.imageOptions?.inlineGraphics) {
+        setCurrentStep(ProcessStep.GENERATING_DIAGRAMS);
+        generatedDiagrams = await geminiService.generateDiagrams(markdownContent);
+        setDiagrams(generatedDiagrams);
+      }
+
+      // Step 5: 画像生成
       setCurrentStep(ProcessStep.GENERATING_IMAGE);
       const imagePrompt = await geminiService.createImagePrompt(
         outline.title,
@@ -64,7 +75,7 @@ export function useArticleGeneration(): UseArticleGenerationReturn {
       );
       const imageUrl = await geminiService.generateImage(imagePrompt);
 
-      // Step 5: X告知文生成
+      // Step 6: X告知文生成
       setCurrentStep(ProcessStep.GENERATING_X_POSTS);
       // TODO: X告知文生成機能の実装
 
@@ -88,6 +99,7 @@ export function useArticleGeneration(): UseArticleGenerationReturn {
     setIsLoading(false);
     setCurrentStep(ProcessStep.IDLE);
     setOutput(null);
+    setDiagrams([]);
     setError(null);
   }, []);
 
@@ -95,6 +107,7 @@ export function useArticleGeneration(): UseArticleGenerationReturn {
     isLoading,
     currentStep,
     output,
+    diagrams,
     error,
     generateArticle,
     reset,

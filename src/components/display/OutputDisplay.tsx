@@ -3,6 +3,7 @@ import { FinalOutput } from '../../types';
 import XPostDisplay from './XPostDisplay';
 import FactCheckDisplay from './FactCheckDisplay';
 import NoteAutoPost from '../automation/NoteAutoPost';
+import SEOKeywordDisplay from '../seo/SEOKeywordDisplay';
 
 interface OutputDisplayProps {
     output: FinalOutput;
@@ -139,6 +140,13 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
                         ファクトチェック結果
                     </h3>
                     <FactCheckDisplay summary={output.factCheckSummary} />
+                </div>
+            )}
+
+            {/* SEOキーワードセット */}
+            {output.seoKeywordSet && (
+                <div className="backdrop-blur-sm bg-white/50 p-6 rounded-xl border border-white/30">
+                    <SEOKeywordDisplay keywordSet={output.seoKeywordSet} />
                 </div>
             )}
 
