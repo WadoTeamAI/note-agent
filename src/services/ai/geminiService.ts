@@ -427,3 +427,26 @@ ${content.substring(0, 2000)}...
         }
     }, 'AI図解提案生成');
 }
+
+/**
+ * 汎用的なテキスト生成関数
+ */
+export async function generateText(prompt: string): Promise<string> {
+    return withRetry(async () => {
+        validateEnvironment();
+        
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-2.0-flash-exp",
+            generationConfig: {
+                temperature: 0.7,
+                topP: 0.8,
+                topK: 40,
+                maxOutputTokens: 8192,
+            }
+        });
+
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        return response.text();
+    }, 'テキスト生成');
+}
