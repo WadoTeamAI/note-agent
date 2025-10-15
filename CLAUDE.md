@@ -6,12 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a comprehensive Japanese note article auto-generation agent that uses Google Gemini AI to create SEO-optimized blog articles. The application features an integrated research system that combines Google Search analysis, note platform insights, and social media trends to generate complete articles with cover images and social media content through a 7-step AI workflow.
 
-**Key Differentiators:**
-- Integrated multi-source research capability (Google Search + note platform + SNS trends)
-- Anti-AI writing style with emphasis on natural Japanese expression
-- Support for YouTube URL input with video content analysis
-- Multi-length article generation (2,500 / 5,000 / 10,000 characters)
-- X (Twitter) promotion post generation with multiple targeting patterns
+**Key Features (Phase 1 Complete):**
+- ✅ Integrated multi-source research capability (Google Search + note platform + SNS trends)
+- ✅ Anti-AI writing style with emphasis on natural Japanese expression
+- ✅ Support for YouTube URL input with video content analysis
+- ✅ Multi-length article generation (2,500 / 5,000 / 10,000 characters)
+- ✅ X (Twitter) promotion post generation (short/long/thread formats)
+- ✅ Article history with Supabase integration
+- ✅ Modern UI with UnionAI-inspired design (glassmorphism effects)
 
 ## Development Commands
 
@@ -45,34 +47,49 @@ The application requires a valid Gemini API key. Follow these steps:
 
 ### Core Workflow (Current Implementation)
 The application follows a 6-step AI generation pipeline:
-1. **TRANSCRIBING** (YouTube only): Video content analysis and transcription
-2. **ANALYZING**: SEO analysis and integrated research (Google Search + note platform + SNS trends)
-3. **OUTLINING**: Article structure generation with title, meta description, sections, and FAQ
-4. **WRITING**: Full article generation in Markdown format with anti-AI writing rules
-5. **GENERATING_IMAGE_PROMPT**: Creation of image description prompt based on article content
-6. **GENERATING_IMAGE**: Cover image generation using Gemini Imagen 4.0
+1. **ANALYZING**: SEO analysis and integrated research (Google Search + note platform + SNS trends)
+2. **OUTLINING**: Article structure generation with title, meta description, sections, and FAQ
+3. **WRITING**: Full article generation in Markdown format with anti-AI writing rules
+4. **GENERATING_IMAGE**: Cover image generation (currently using Gemini 2.5 Flash Image API with SVG fallback)
+5. **GENERATING_X_POSTS**: X promotion post generation (short/long/thread formats with engagement prediction)
+6. **SAVING_HISTORY**: Article history saved to Supabase (when available)
 
-### Extended Workflow (Requirements Roadmap)
-Future phases will include:
-- **Step 0**: Integrated multi-source research (Google Search API + note analysis + SNS trends)
-- **Step 4.2**: Inline graphics generation (process diagrams, comparison charts, graphs)
-- **Step 5**: X (Twitter) promotion post generation with multiple targeting patterns
-- **Step 5.1**: Thread and long-form social media expansion
+### Optional Workflow Steps
+- **TRANSCRIBING** (YouTube only): Video content analysis and transcription when YouTube URL is provided
+
+### Future Extensions (Phase 1.5+)
+- Inline graphics generation (Mermaid.js integration)
+- A/B testing with multiple article versions
+- Real-time preview and dark mode
+- Voice input and audio transcription
 
 ### Key Components
 
-- **App.tsx**: Main application component managing the complete workflow state
+**Core Application:**
+- **App.tsx**: Main application component managing workflow state, includes history panel integration
+- **types/index.ts**: Main type definitions that re-exports from article.types.ts, api.types.ts, and social.types.ts
+- **types/social.types.ts**: X (Twitter) post generation types (XPost, XThread, XPostGenerationResult)
+
+**AI & Social Services:**
 - **services/ai/geminiService.ts**: All Gemini AI API interactions (text generation, image generation)
-- **types/index.ts**: Main type definitions that re-exports from article.types.ts and api.types.ts
-- **types/article.types.ts**: Article-specific TypeScript definitions
-- **types/api.types.ts**: API-related TypeScript definitions
-- **hooks/useArticleGeneration.ts**: Custom hook for article generation logic
-- **components/forms/InputGroup.tsx**: Input form component
-- **components/feedback/StepIndicator.tsx**: Progress indicator component
-- **components/display/OutputDisplay.tsx**: Results display component
+- **services/social/xPostGenerator.ts**: X post generation service (short/long/thread formats)
+
+**Database & History:**
+- **services/database/supabaseClient.ts**: Supabase client configuration and types
+- **services/database/historyService.ts**: Article history management (save/retrieve/search)
+
+**UI Components:**
+- **components/forms/InputGroup.tsx**: Input form component with glassmorphism styling
+- **components/feedback/StepIndicator.tsx**: Progress indicator with modern UI design
+- **components/display/OutputDisplay.tsx**: Results display component with X post integration
+- **components/display/XPostDisplay.tsx**: Specialized component for displaying X posts
+- **components/history/HistoryPanel.tsx**: Article history sidebar panel
+
+**Supporting Services:**
 - **services/research/**: Research services (searchService.ts, noteAnalyzer.ts, trendAnalyzer.ts)
 - **config/**: Configuration files (constants.ts, env.ts)
 - **utils/**: Utility functions (formatting.ts, validation.ts)
+- **hooks/**: Custom React hooks (useArticleGeneration.ts, useLocalStorage.ts)
 
 ### AI Service Functions
 
@@ -82,7 +99,7 @@ All AI interactions are centralized in `services/ai/geminiService.ts` with retry
 - `createArticleOutline()`: Generates structured article outline as JSON with schema validation
 - `writeArticle()`: Creates full Markdown article content with anti-AI writing enforcement
 - `createImagePrompt()`: Generates image description from article content and user theme
-- `generateImage()`: Creates cover image (currently uses fallback SVG placeholder)
+- `generateImage()`: Creates cover image using Gemini 2.5 Flash Image API (with SVG fallback)
 - `withRetry()`: Exponential backoff retry mechanism for all API calls
 - `validateEnvironment()`: Checks API key configuration and provides helpful error messages
 
@@ -93,8 +110,10 @@ All AI interactions are centralized in `services/ai/geminiService.ts` with retry
 3. Form submission triggers sequential API calls with progress tracking
 4. Each step updates `currentStep` state with visual progress indicators
 5. Error handling includes retry logic and user-friendly error messages
-6. Final output includes Markdown content, base64 image, meta description, and copy functionality
-7. Responsive UI adapts to different screen sizes with mobile-first design
+6. Final output includes Markdown content, base64 image, meta description, X posts, and copy functionality
+7. **Article history is automatically saved to Supabase** (when available) or LocalStorage fallback
+8. **History panel (📚 button)** allows users to view, restore, and manage past articles
+9. Responsive UI adapts to different screen sizes with mobile-first design
 
 ## Technical Implementation Details
 
@@ -106,14 +125,22 @@ All AI interactions are centralized in `services/ai/geminiService.ts` with retry
 
 ### AI Model Configuration
 - **Text Generation**: Gemini 2.5 Flash (optimized for speed and quality balance)
-- **Image Generation**: Imagen 4.0 (16:9 aspect ratio, PNG format)
+- **Image Generation**: Gemini 2.5 Flash Image API (16:9 aspect ratio, PNG format)
 - **Schema Validation**: JSON schema enforcement for consistent API responses
 - **Error Handling**: Comprehensive retry logic with user-friendly Japanese error messages
 
+### Database & History Management
+- **Primary Storage**: Supabase (PostgreSQL with Pgvector for future RAG features)
+- **Fallback Storage**: LocalStorage for offline capability
+- **Data Types**: Article content, metadata, generation parameters, performance metrics
+- **Features**: Search, filter, restore, delete operations
+- **Security**: Row Level Security (RLS) enabled, API key-based authentication
+
 ### Environment Management
 - Robust API key validation with helpful setup guidance
-- Multiple environment variable support (`API_KEY` and `GEMINI_API_KEY`)
+- Multiple environment variable support (`GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`)
 - Security-first approach with `.env.local` automatic Git ignore
+- Graceful degradation when Supabase is not configured (LocalStorage fallback)
 - Production deployment guidance included
 
 ## Content Generation Rules & Anti-AI Writing System
