@@ -11,6 +11,8 @@ export * from './api.types';
 export * from './social.types';
 // ファクトチェック関連の型を再エクスポート
 export * from './factcheck.types';
+// 下書き関連の型を再エクスポート
+export * from './draft.types';
 
 export enum Tone {
   POLITE = '丁寧で落ち着いた',
