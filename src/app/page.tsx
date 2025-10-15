@@ -238,11 +238,11 @@ export default function HomePage() {
                                 <CollapsibleSection title="基本設定" icon="🎯" defaultOpen={true}>
                                     <div className="space-y-6">
                                         <InputGroup 
-                                            label="記事のテーマ・キーワード or YouTube URL" 
+                                            label="記事のテーマ・キーワード" 
                                             id="keyword" 
                                             value={formData.keyword} 
                                             onChange={handleChange} 
-                                            placeholder="例: 副業 始め方 または https://www.youtube.com/watch?v=..." 
+                                            placeholder="例: 副業 始め方" 
                                             required 
                                         />
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
