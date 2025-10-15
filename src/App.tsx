@@ -22,6 +22,8 @@ import { ABTestResult, ABTestVersion, VariationType } from './types/abtest.types
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
 import { AnalyticsService } from './services/analytics/analyticsService';
 import { InteractionType } from './types/analytics.types';
+import XPostManager from './components/social/XPostManager';
+import { xPostExporter, PreparedPost } from './services/social/xPostExporter';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -45,6 +47,8 @@ const App: React.FC = () => {
     const [abtestResult, setAbtestResult] = useState<ABTestResult | null>(null);
     const [isABTestRunning, setIsABTestRunning] = useState<boolean>(false);
     const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState<boolean>(false);
+    const [showXPostManager, setShowXPostManager] = useState<boolean>(false);
+    const [currentXPosts, setCurrentXPosts] = useState<PreparedPost[]>([]);
     
     // 承認ワークフローマネージャーの初期化
     const workflowManager = useRef(new ApprovalWorkflowManager());
@@ -146,6 +150,13 @@ const App: React.FC = () => {
                 tone: formData.tone,
                 targetAudiences: ['初心者', '中級者', 'ビジネスパーソン', '主婦・主夫', '学生'],
             });
+
+            // X投稿をエクスポート用に準備
+            const preparedPosts = xPostExporter.preparePosts(xPosts, {
+                articleTitle: outline.title,
+                keyword: formData.keyword
+            });
+            setCurrentXPosts(preparedPosts);
 
             // X投稿承認データを設定
             const allPosts = [
@@ -338,6 +349,12 @@ const App: React.FC = () => {
                             >
                                 📊 分析
                             </button>
+                            <button
+                                onClick={() => setShowXPostManager(true)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            >
+                                🐦 X投稿管理
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -490,6 +507,13 @@ const App: React.FC = () => {
             <AnalyticsDashboard
                 isOpen={showAnalyticsDashboard}
                 onClose={() => setShowAnalyticsDashboard(false)}
+            />
+
+            {/* X投稿管理 */}
+            <XPostManager
+                isOpen={showXPostManager}
+                onClose={() => setShowXPostManager(false)}
+                initialPosts={currentXPosts}
             />
 
         </div>

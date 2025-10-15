@@ -128,8 +128,8 @@ const BatchGenerator: React.FC<BatchGeneratorProps> = ({ onClose }) => {
                                             className="w-full px-4 py-3 backdrop-blur-sm bg-white/60 border border-white/30 rounded-xl shadow-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
                                         >
                                             {TONE_OPTIONS.map(option => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
+                                                <option key={option} value={option}>
+                                                    {option}
                                                 </option>
                                             ))}
                                         </select>
@@ -143,8 +143,8 @@ const BatchGenerator: React.FC<BatchGeneratorProps> = ({ onClose }) => {
                                             className="w-full px-4 py-3 backdrop-blur-sm bg-white/60 border border-white/30 rounded-xl shadow-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
                                         >
                                             {AUDIENCE_OPTIONS.map(option => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
+                                                <option key={option} value={option}>
+                                                    {option}
                                                 </option>
                                             ))}
                                         </select>

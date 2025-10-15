@@ -17,6 +17,8 @@ import ApprovalWorkflowPanel from '@/components/approval/ApprovalWorkflowPanel';
 import { ApprovalWorkflowManager } from '@/services/approval/approvalWorkflow';
 import { ApprovalWorkflow, StepType, OutlineApprovalData, ContentApprovalData, ImageApprovalData, XPostApprovalData } from '@/types/approval.types';
 import { ABTestPanel } from '@/components/abtest/ABTestPanel';
+import { ABTestService } from '@/services/abtest/abtestService';
+import { VariationType } from '@/types/abtest.types';
 
 // Dynamic imports for client-side only components
 const VoiceIdeaProcessor = dynamic(
@@ -51,6 +53,9 @@ export default function HomePage() {
     
     // 承認ワークフローマネージャーの初期化
     const workflowManager = useRef(new ApprovalWorkflowManager());
+    
+    // A/Bテストサービスの初期化
+    const abTestService = useRef(new ABTestService());
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -226,6 +231,38 @@ export default function HomePage() {
         alert('記事の承認が完了しました！公開準備に進んでください。');
     };
 
+    const handleABTestStart = async (versionCount: number, variationTypes: VariationType[]) => {
+        console.log('A/Bテスト開始:', { versionCount, variationTypes });
+        
+        try {
+            setIsLoading(true);
+            setShowABTestPanel(false);
+            setCurrentStep(ProcessStep.ANALYZING);
+            
+            // A/Bテスト実行
+            const result = await abTestService.current.runABTest({
+                id: `abtest-${Date.now()}`,
+                baseFormData: formData,
+                versionCount,
+                variationTypes,
+                createdAt: new Date().toISOString()
+            });
+            
+            console.log('A/Bテスト結果:', result);
+            
+            // 結果を表示（今はコンソールログのみ）
+            // TODO: A/Bテスト結果表示コンポーネントを実装
+            setCurrentStep(ProcessStep.IDLE);
+            
+        } catch (error) {
+            console.error('A/Bテストエラー:', error);
+            setError('A/Bテストの実行に失敗しました。');
+            setCurrentStep(ProcessStep.IDLE);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen text-gray-800 font-sans relative overflow-hidden">
             {/* Header */}
@@ -393,11 +430,13 @@ export default function HomePage() {
                 onIdeaProcessed={handleVoiceIdeaProcessed}
             />
 
-            <ABTestPanel 
-                isVisible={showABTestPanel}
-                onClose={() => setShowABTestPanel(false)}
-                initialFormData={formData}
-            />
+            {showABTestPanel && (
+                <ABTestPanel 
+                    formData={formData}
+                    onClose={() => setShowABTestPanel(false)}
+                    onStart={handleABTestStart}
+                />
+            )}
 
             {showApprovalWorkflow && currentWorkflowId && (
                 <ApprovalWorkflowPanel

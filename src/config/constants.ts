@@ -4,13 +4,13 @@
 
 import { Tone, Audience, ProcessStep } from '../types';
 
-export const TONE_OPTIONS: Tone[] = [
+export const TONE_OPTIONS = [
     Tone.POLITE,
     Tone.FRIENDLY,
     Tone.PROFESSIONAL,
 ];
 
-export const AUDIENCE_OPTIONS: Audience[] = [
+export const AUDIENCE_OPTIONS = [
     Audience.BEGINNER,
     Audience.INTERMEDIATE,
     Audience.EXPERT,
