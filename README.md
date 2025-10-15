@@ -111,8 +111,13 @@
   - ストーリーテリング型/ハウツー型/データドリブン型など
   - A/Bテストで最適な記事を選択
 
-- 🌙 **ダークモード**
-  - 目に優しい暗色テーマ
+- ✓ **ダークモード** ✅ **実装完了**
+  - ライト/ダーク/システム設定の3モード対応
+  - LocalStorageへの設定自動保存
+  - システムのダークモード設定を自動検知
+  - スムーズなテーマ遷移アニメーション
+  - 右上のThemeToggleボタンで簡単切り替え
+  - CSS変数による柔軟なテーマ管理
 
 - 👀 **リアルタイムプレビュー**
   - note風デザインでプレビュー表示
@@ -461,7 +466,10 @@ note-agent/
 │   │   ├── display/
 │   │   │   ├── OutputDisplay.tsx    # 結果表示
 │   │   │   ├── XPostDisplay.tsx     # X投稿表示
-│   │   │   └── FactCheckDisplay.tsx # ファクトチェック結果表示
+│   │   │   ├── FactCheckDisplay.tsx # ファクトチェック結果表示
+│   │   │   └── DiagramDisplay.tsx   # Mermaid図解表示
+│   │   ├── theme/
+│   │   │   └── ThemeToggle.tsx      # ダークモード切り替え
 │   │   └── feedback/
 │   │       └── StepIndicator.tsx    # 進捗インジケーター
 │   │
@@ -475,15 +483,31 @@ note-agent/
 │   │   │   └── tavilyService.ts     # Tavily ファクトチェックAPI
 │   │   ├── social/
 │   │   │   └── xPostGenerator.ts    # X投稿生成
+│   │   ├── storage/
+│   │   │   └── localStorageService.ts # 下書き保存
+│   │   ├── seo/
+│   │   │   └── keywordGeneratorService.ts # SEOキーワード生成
+│   │   ├── diagram/
+│   │   │   └── diagramService.ts    # Mermaid図解生成
 │   │   └── api/                     # 将来の外部API
 │   │
 │   ├── hooks/                       # カスタムReactフック
+│   │   ├── useArticleGeneration.ts
+│   │   ├── useLocalStorage.ts
+│   │   └── useTheme.ts              # テーマ管理
+│   │
+│   ├── contexts/                    # React Context
+│   │   └── ThemeContext.tsx         # テーマコンテキスト
+│   │
 │   ├── types/                       # TypeScript型定義
 │   │   ├── index.ts
 │   │   ├── article.types.ts
 │   │   ├── api.types.ts
 │   │   ├── social.types.ts          # X投稿関連の型
-│   │   └── factcheck.types.ts       # ファクトチェック関連の型
+│   │   ├── factcheck.types.ts       # ファクトチェック関連の型
+│   │   ├── draft.types.ts           # 下書き関連の型
+│   │   ├── seo.types.ts             # SEO関連の型
+│   │   └── theme.types.ts           # テーマ関連の型
 │   │
 │   ├── config/                      # 設定
 │   │   ├── constants.ts
@@ -494,6 +518,8 @@ note-agent/
 │   │   └── validation.ts
 │   │
 │   └── styles/                      # スタイル
+│       ├── global.css               # グローバルスタイル
+│       └── theme.css                # ダークモード用CSS変数
 │
 ├── public/                          # 静的アセット
 ├── .env.local                       # 環境変数（要作成）
@@ -592,13 +618,13 @@ UI表示・コピー機能
 - ✅ **ファクトチェック機能（Tavily API）** - 完了！
 - ✅ **下書き保存機能（LocalStorage基盤）** - 完了！
 - ✅ **SEOキーワードセット自動生成** - 完了！
-- ⚪ 差し込み図解生成（Mermaid.js）
-- ⚪ スレッド形式展開
-- ⚪ 10,000文字対応
-- ⚪ **複数バージョン生成（A/Bテスト）**
-- ⚪ **ダークモード**
+- ✅ **差し込み図解生成（Mermaid.js）** - 完了！
+- ✅ **ダークモード** - 完了！
 - ⚪ **リアルタイムプレビュー**
 - ⚪ **音声入力対応**
+- ⚪ **複数バージョン生成（A/Bテスト）**
+- ⚪ スレッド形式展開
+- ⚪ 10,000文字対応
 - ⚪ **読みやすさ/SEOスコア表示**
 - ⚪ Next.js 14への移行検討
 

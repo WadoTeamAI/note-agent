@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Tone, Audience, FormData, FinalOutput, ProcessStep } from './types';
 import { TONE_OPTIONS, AUDIENCE_OPTIONS, isYouTubeURL } from './config/constants';
 import * as geminiService from './services/ai/geminiService';
@@ -9,7 +9,12 @@ import StepIndicator from './components/feedback/StepIndicator';
 import OutputDisplay from './components/display/OutputDisplay';
 import BatchGenerator from './components/batch/BatchGenerator';
 import TrendingTopicsPanel from './components/news/TrendingTopicsPanel';
+import { VoiceIdeaProcessor } from './components/audio/VoiceIdeaProcessor';
+import ThemeToggle from './components/theme/ThemeToggle';
 import { ArticleGenerationSuggestion } from './types/news.types';
+import ApprovalWorkflowPanel from './components/approval/ApprovalWorkflowPanel';
+import { ApprovalWorkflowManager } from './services/approval/approvalWorkflow';
+import { ApprovalWorkflow, StepType, OutlineApprovalData, ContentApprovalData, ImageApprovalData, XPostApprovalData } from './types/approval.types';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -26,6 +31,12 @@ const App: React.FC = () => {
     const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
     const [showBatchGenerator, setShowBatchGenerator] = useState<boolean>(false);
     const [showTrendingPanel, setShowTrendingPanel] = useState<boolean>(false);
+    const [showVoiceProcessor, setShowVoiceProcessor] = useState<boolean>(false);
+    const [showApprovalWorkflow, setShowApprovalWorkflow] = useState<boolean>(false);
+    const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(null);
+    
+    // 承認ワークフローマネージャーの初期化
+    const workflowManager = useRef(new ApprovalWorkflowManager());
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -43,6 +54,17 @@ const App: React.FC = () => {
         setCurrentStep(ProcessStep.IDLE);
 
         try {
+            // 承認ワークフローを作成
+            const workflowId = await workflowManager.current.createWorkflow({
+                keyword: formData.keyword,
+                tone: formData.tone,
+                audience: formData.audience,
+                targetLength: formData.targetLength,
+                imageTheme: formData.imageTheme
+            });
+
+            setCurrentWorkflowId(workflowId);
+
             // Step 1: SEO分析
             setCurrentStep(ProcessStep.ANALYZING);
             const analysis = await geminiService.analyzeSerpResults(formData.keyword);
@@ -51,10 +73,30 @@ const App: React.FC = () => {
             setCurrentStep(ProcessStep.OUTLINING);
             const outline = await geminiService.createArticleOutline(analysis, formData.audience, formData.tone, formData.keyword);
             
+            // 構成承認データを設定
+            const outlineData: OutlineApprovalData = {
+                originalOutline: {
+                    title: outline.title,
+                    metaDescription: outline.metaDescription,
+                    sections: outline.sections.map(section => ({
+                        heading: section.heading,
+                        subheadings: section.content ? [section.content] : []
+                    }))
+                }
+            };
+            await workflowManager.current.updateStepContent(workflowId, StepType.OUTLINE_REVIEW, outlineData);
+
             // Step 3: 本文生成
             setCurrentStep(ProcessStep.WRITING);
             const markdownContent = await geminiService.writeArticle(outline, formData.targetLength, formData.tone, formData.audience);
             
+            // 本文承認データを設定
+            const contentData: ContentApprovalData = {
+                originalContent: markdownContent,
+                wordCount: markdownContent.length
+            };
+            await workflowManager.current.updateStepContent(workflowId, StepType.CONTENT_REVIEW, contentData);
+
             // Step 4: ファクトチェック
             setCurrentStep(ProcessStep.FACT_CHECKING);
             const claims = await extractClaims(markdownContent, formData.keyword);
@@ -69,6 +111,13 @@ const App: React.FC = () => {
             const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, formData.imageTheme);
             const imageUrl = await geminiService.generateImage(imagePrompt);
 
+            // 画像承認データを設定
+            const imageData: ImageApprovalData = {
+                originalImageUrl: imageUrl,
+                originalPrompt: imagePrompt
+            };
+            await workflowManager.current.updateStepContent(workflowId, StepType.IMAGE_REVIEW, imageData);
+
             // Step 6: X告知文生成
             setCurrentStep(ProcessStep.GENERATING_X_POSTS);
             const xPosts = await generateXPosts({
@@ -79,6 +128,16 @@ const App: React.FC = () => {
                 targetAudiences: ['初心者', '中級者', 'ビジネスパーソン', '主婦・主夫', '学生'],
             });
 
+            // X投稿承認データを設定
+            const allPosts = [
+                ...xPosts.shortPosts.map(post => ({ type: post.type, content: post.text, audience: post.target })),
+                ...xPosts.longPosts.map(post => ({ type: post.type, content: post.text, audience: post.target }))
+            ];
+            const xPostData: XPostApprovalData = {
+                originalPosts: allPosts
+            };
+            await workflowManager.current.updateStepContent(workflowId, StepType.XPOST_REVIEW, xPostData);
+
             const finalOutput = { 
                 markdownContent, 
                 imageUrl, 
@@ -87,8 +146,14 @@ const App: React.FC = () => {
                 factCheckSummary
             };
             
+            // 最終出力をワークフローに設定
+            await workflowManager.current.setFinalOutput(workflowId, finalOutput);
+            
             setOutput(finalOutput);
             setCurrentStep(ProcessStep.DONE);
+
+            // 承認ワークフローパネルを表示
+            setShowApprovalWorkflow(true);
 
         } catch (err) {
             console.error(err);
@@ -107,14 +172,44 @@ const App: React.FC = () => {
             keyword: suggestion.keyword,
             // 読者層を推定してマッピング
             audience: suggestion.targetAudience.includes('初心者') ? Audience.BEGINNER : 
-                     suggestion.targetAudience.includes('ビジネス') ? Audience.BUSINESS_PERSON : 
-                     Audience.GENERAL
+                     suggestion.targetAudience.includes('中級者') ? Audience.INTERMEDIATE : 
+                     Audience.EXPERT
         }));
         
         setShowTrendingPanel(false);
         
         // 自動的に記事生成を開始（オプション）
         // generateArticle(newFormData);
+    };
+
+    const handleVoiceIdeaProcessed = (voiceFormData: Partial<FormData>) => {
+        // 音声アイデアの結果をフォームに反映
+        setFormData(prev => ({
+            ...prev,
+            ...voiceFormData
+        }));
+        
+        setShowVoiceProcessor(false);
+        
+        // 音声アイデアが処理されたことを表示
+        console.log('音声アイデアが適用されました:', voiceFormData);
+    };
+
+    const handleApprovalWorkflowComplete = (workflow: ApprovalWorkflow) => {
+        // 承認完了時の処理
+        console.log('承認ワークフローが完了しました:', workflow);
+        
+        // 最終出力を設定
+        if (workflow.finalOutput) {
+            setOutput(workflow.finalOutput);
+        }
+        
+        // パネルを閉じる
+        setShowApprovalWorkflow(false);
+        setCurrentWorkflowId(null);
+        
+        // 成功メッセージを表示
+        alert('記事の承認が完了しました！公開準備に進んでください。');
     };
 
     return (
@@ -131,7 +226,14 @@ const App: React.FC = () => {
                             </h1>
                             <p className="text-gray-600 text-lg font-medium">noteの記事作成をAIで自動化し、あなたの執筆活動をサポートします</p>
                         </div>
-                        <div className="flex space-x-3">
+                        <div className="flex space-x-3 items-center">
+                            <ThemeToggle />
+                            <button
+                                onClick={() => setShowVoiceProcessor(true)}
+                                className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium"
+                            >
+                                🎙️ 音声入力
+                            </button>
                             <button
                                 onClick={() => setShowTrendingPanel(true)}
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
@@ -149,6 +251,12 @@ const App: React.FC = () => {
                                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
                             >
                                 📋 履歴
+                            </button>
+                            <button
+                                onClick={() => setShowApprovalWorkflow(true)}
+                                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+                            >
+                                👥 承認フロー
                             </button>
                         </div>
                     </div>
@@ -230,6 +338,13 @@ const App: React.FC = () => {
                 <BatchGenerator onClose={() => setShowBatchGenerator(false)} />
             )}
 
+            {/* 音声入力プロセッサー */}
+            <VoiceIdeaProcessor 
+                isVisible={showVoiceProcessor}
+                onClose={() => setShowVoiceProcessor(false)}
+                onIdeaProcessed={handleVoiceIdeaProcessed}
+            />
+
             {/* 履歴パネル - Phase 2で実装予定 */}
             {/* <HistoryPanel
                 isOpen={showHistoryPanel}
@@ -246,6 +361,16 @@ const App: React.FC = () => {
                     }
                 }}
             /> */}
+
+            {/* 承認ワークフローパネル */}
+            {showApprovalWorkflow && currentWorkflowId && (
+                <ApprovalWorkflowPanel
+                    workflowId={currentWorkflowId}
+                    workflowManager={workflowManager.current}
+                    onClose={() => setShowApprovalWorkflow(false)}
+                    onComplete={handleApprovalWorkflowComplete}
+                />
+            )}
 
         </div>
     );
