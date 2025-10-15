@@ -7,9 +7,10 @@ interface StepIndicatorProps {
     currentStep: ProcessStep;
     error: string | null;
     keyword?: string;
+    generatedImage?: string | null; // Base64画像データまたはURL
 }
 
-const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keyword = '' }) => {
+const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keyword = '', generatedImage = null }) => {
     if (currentStep === ProcessStep.IDLE) return null;
 
     // YouTube URLかどうかで使用するステップ配列を決定
@@ -18,13 +19,13 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keywo
     
     // 8段階ワークフローのステップ詳細情報（ファクトチェック追加）
     const stepDetails = [
-        { step: ProcessStep.RESEARCH, icon: '🔬', label: 'リサーチ' },
-        { step: ProcessStep.ANALYZING, icon: '📊', label: 'SEO分析' },
-        { step: ProcessStep.OUTLINING, icon: '📝', label: '構成作成' },
-        { step: ProcessStep.WRITING, icon: '✍️', label: '記事執筆' },
-        { step: ProcessStep.FACT_CHECKING, icon: '✓', label: 'ファクトチェック' },
-        { step: ProcessStep.GENERATING_IMAGE, icon: '🖼️', label: '画像生成' },
-        { step: ProcessStep.GENERATING_X_POSTS, icon: '🐦', label: 'X告知文' },
+        { step: ProcessStep.RESEARCH, icon: '🔬', label: 'リサーチ', image: '/images/status/lZVPMSIq_400x400のコピー.jpg' },
+        { step: ProcessStep.ANALYZING, icon: '📊', label: 'SEO分析', image: '/images/status/わどさん (3).png' },
+        { step: ProcessStep.OUTLINING, icon: '📝', label: '構成作成', image: '/images/status/わどさん (2).png' },
+        { step: ProcessStep.WRITING, icon: '✍️', label: '記事執筆', image: '/images/status/ChatGPT_Image_202577_15_44_59.png' },
+        { step: ProcessStep.FACT_CHECKING, icon: '✓', label: 'ファクトチェック', image: '/images/status/lZVPMSIq_400x400のコピー.jpg' },
+        { step: ProcessStep.GENERATING_IMAGE, icon: '🖼️', label: '画像生成', image: '/images/status/ChatGPT_Image_202577_15_44_59.png' },
+        { step: ProcessStep.GENERATING_X_POSTS, icon: '🐦', label: 'X告知文', image: '/images/status/わどさん (3).png' },
     ];
 
     const progressPercentage = currentStep === ProcessStep.DONE ? 100 : Math.round(((currentIndex + 1) / steps.length) * 100);
@@ -87,9 +88,29 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keywo
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                     </svg>
-                                ) : detail.icon}
-                                {isCurrent && (
-                                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent"></div>
+                                ) : (
+                                    <div className="relative w-full h-full">
+                                        <img 
+                                            src={detail.image} 
+                                            alt={detail.label}
+                                            className="w-full h-full object-cover rounded-xl"
+                                            onError={(e) => {
+                                                // 画像読み込みエラー時は絵文字にフォールバック
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                const parent = target.parentElement;
+                                                if (parent) {
+                                                    parent.innerHTML = detail.icon;
+                                                    parent.className += ' flex items-center justify-center text-lg font-medium';
+                                                }
+                                            }}
+                                        />
+                                        {isCurrent && (
+                                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center">
+                                                <div className="w-6 h-6 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             <p className={`text-sm font-semibold transition-colors duration-200 ${

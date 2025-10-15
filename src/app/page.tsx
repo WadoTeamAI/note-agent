@@ -50,6 +50,7 @@ export default function HomePage() {
     const [showApprovalWorkflow, setShowApprovalWorkflow] = useState<boolean>(false);
     const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(null);
     const [showABTestPanel, setShowABTestPanel] = useState<boolean>(false);
+    const [currentGeneratedImage, setCurrentGeneratedImage] = useState<string | null>(null);
     
     // 承認ワークフローマネージャーの初期化
     const workflowManager = useRef(new ApprovalWorkflowManager());
@@ -71,6 +72,7 @@ export default function HomePage() {
         setError(null);
         setOutput(null);
         setCurrentStep(ProcessStep.IDLE);
+        setCurrentGeneratedImage(null);
 
         try {
             // 承認ワークフローを作成
@@ -129,6 +131,7 @@ export default function HomePage() {
             setCurrentStep(ProcessStep.GENERATING_IMAGE);
             const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, formData.imageTheme);
             const imageUrl = await geminiService.generateImage(imagePrompt);
+            setCurrentGeneratedImage(imageUrl);
 
             // 画像承認データを設定
             const imageData: ImageApprovalData = {
@@ -387,7 +390,12 @@ export default function HomePage() {
                     {/* Right Column: Status & Output */}
                     <div className="lg:col-span-8">
                         {isLoading || error ? (
-                            <StepIndicator currentStep={currentStep} error={error} keyword={formData.keyword} />
+                            <StepIndicator 
+                                currentStep={currentStep} 
+                                error={error} 
+                                keyword={formData.keyword} 
+                                generatedImage={currentGeneratedImage}
+                            />
                         ) : null}
 
                         {output && !isLoading ? (
