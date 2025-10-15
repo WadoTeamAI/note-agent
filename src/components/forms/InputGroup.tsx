@@ -14,6 +14,9 @@ interface InputGroupProps {
     rows?: number; // textareaの行数
     description?: string; // フィールドの説明
     multiple?: boolean; // multi-selectで複数選択可能
+    min?: string; // numberインプットの最小値
+    max?: string; // numberインプットの最大値
+    step?: string; // numberインプットのステップ
 }
 
 const InputGroup: React.FC<InputGroupProps> = ({
@@ -29,6 +32,9 @@ const InputGroup: React.FC<InputGroupProps> = ({
     rows = 3,
     description,
     multiple = false,
+    min,
+    max,
+    step,
 }) => {
     const baseClasses = "w-full px-4 py-3 backdrop-blur-sm bg-white/60 border border-white/30 rounded-xl shadow-lg focus:ring-4 focus:ring-purple-200/50 focus:border-purple-300 focus:bg-white/80 hover:bg-white/70 transition-all duration-300 ease-in-out placeholder-gray-400 text-gray-700";
     
@@ -48,6 +54,9 @@ const InputGroup: React.FC<InputGroupProps> = ({
                         onChange={onChange}
                         placeholder={placeholder}
                         required={required}
+                        min={min}
+                        max={max}
+                        step={step}
                         className={baseClasses}
                     />
                 );
