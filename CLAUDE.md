@@ -19,6 +19,7 @@ This is a comprehensive Japanese note article auto-generation agent that uses Go
 - **Build for production**: `npm run build`
 - **Preview production build**: `npm run preview`
 - **Install dependencies**: `npm install`
+- **Type checking**: `npm run type-check` (if available in package.json)
 
 ## Environment Setup
 
@@ -61,20 +62,29 @@ Future phases will include:
 ### Key Components
 
 - **App.tsx**: Main application component managing the complete workflow state
-- **services/geminiService.ts**: All Gemini AI API interactions (text generation, image generation)
-- **types.ts**: TypeScript definitions for form data, article structure, and process steps
-- **components/**: UI components for input form, step indicators, and output display
+- **services/ai/geminiService.ts**: All Gemini AI API interactions (text generation, image generation)
+- **types/index.ts**: Main type definitions that re-exports from article.types.ts and api.types.ts
+- **types/article.types.ts**: Article-specific TypeScript definitions
+- **types/api.types.ts**: API-related TypeScript definitions
+- **hooks/useArticleGeneration.ts**: Custom hook for article generation logic
+- **components/forms/InputGroup.tsx**: Input form component
+- **components/feedback/StepIndicator.tsx**: Progress indicator component
+- **components/display/OutputDisplay.tsx**: Results display component
+- **services/research/**: Research services (searchService.ts, noteAnalyzer.ts, trendAnalyzer.ts)
+- **config/**: Configuration files (constants.ts, env.ts)
+- **utils/**: Utility functions (formatting.ts, validation.ts)
 
 ### AI Service Functions
 
-All AI interactions are centralized in `geminiService.ts` with retry logic and error handling:
+All AI interactions are centralized in `services/ai/geminiService.ts` with retry logic and error handling:
 - `transcribeYouTubeVideo()`: Analyzes YouTube video content for article generation
-- `analyzeSerpResults()`: Performs SEO analysis and search intent research
+- `analyzeSerpResults()`: Performs SEO analysis and search intent research (integrates with searchService.ts)
 - `createArticleOutline()`: Generates structured article outline as JSON with schema validation
 - `writeArticle()`: Creates full Markdown article content with anti-AI writing enforcement
 - `createImagePrompt()`: Generates image description from article content and user theme
-- `generateImage()`: Creates cover image using Imagen 4.0 API
+- `generateImage()`: Creates cover image (currently uses fallback SVG placeholder)
 - `withRetry()`: Exponential backoff retry mechanism for all API calls
+- `validateEnvironment()`: Checks API key configuration and provides helpful error messages
 
 ### Data Flow
 
@@ -130,22 +140,38 @@ Multiple experience patterns are provided to AI:
 ## Development Workflow
 
 ### Adding New Features
-1. Update `types.ts` for new data structures
-2. Extend `geminiService.ts` for AI interactions
-3. Implement UI components in `components/`
-4. Update workflow in `App.tsx`
-5. Test with `npm run build` for production readiness
+1. Update type definitions in `types/` directory (article.types.ts, api.types.ts, or index.ts)
+2. Extend `services/ai/geminiService.ts` for AI interactions
+3. Add research functionality in `services/research/` if needed
+4. Implement UI components in `components/forms/`, `components/display/`, or `components/feedback/`
+5. Update workflow in `App.tsx` or consider using `hooks/useArticleGeneration.ts`
+6. Add utility functions in `utils/` if needed
+7. Test with `npm run build` for production readiness
+
+### Code Organization Principles
+- **Separation of Concerns**: UI components separated from business logic
+- **Feature-based Structure**: Research services grouped in `services/research/`
+- **Type Safety**: Comprehensive TypeScript definitions split by domain
+- **Hooks Pattern**: Business logic extracted into custom hooks for reusability
+- **Configuration Management**: Environment and constants centralized in `config/`
 
 ### Modifying AI Prompts
 - All prompts are in Japanese and optimized for natural output
-- Include anti-AI writing rules in new prompts
+- Include anti-AI writing rules in new prompts (see Content Generation Rules section)
 - Test with various input patterns (keywords vs YouTube URLs)
-- Ensure schema validation for JSON responses
+- Ensure schema validation for JSON responses in `createArticleOutline()`
+- Use the retry mechanism with exponential backoff for API reliability
 
-### Phase Development
-Current implementation is Phase 1 (MVP). See `requirements.md` for roadmap:
+### Working with Research Services
+- `searchService.ts`: Google Search API integration for real-time SERP analysis
+- `noteAnalyzer.ts`: Note platform-specific analysis (placeholder for future implementation)
+- `trendAnalyzer.ts`: Social media trend analysis (placeholder for future implementation)
+- These services are called from `analyzeSerpResults()` with fallback to basic analysis
+
+### Phase Development Status
+Current implementation is Phase 1 (MVP). See `requirements.md` for detailed roadmap:
 - Phase 1: Core generation (✅ Complete)
-- Phase 1.5: Extended features (inline graphics, longer content)
+- Phase 1.5: Extended features (inline graphics, longer content, A/B testing)
 - Phase 2: External API integration (note API, X API, Supabase)
 - Phase 3: Analytics and optimization
 - Phase 4: Multi-platform publishing

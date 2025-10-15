@@ -29,53 +29,74 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keywo
     const progressPercentage = currentStep === ProcessStep.DONE ? 100 : Math.round(((currentIndex + 1) / steps.length) * 100);
     
     return (
-        <div className="w-full bg-white p-4 md:p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center md:text-left">生成ステータス</h2>
+        <div className="w-full backdrop-blur-lg bg-white/70 p-6 md:p-8 rounded-2xl shadow-xl border border-white/20 mb-8">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    生成ステータス
+                </h2>
+                <div className="flex items-center space-x-3">
+                    <span className={`text-sm font-bold px-4 py-2 rounded-full backdrop-blur-sm border ${
+                        currentStep === ProcessStep.DONE 
+                            ? 'bg-green-100/80 text-green-700 border-green-200' 
+                            : currentStep === ProcessStep.ERROR 
+                            ? 'bg-red-100/80 text-red-700 border-red-200' 
+                            : 'bg-blue-100/80 text-blue-700 border-blue-200'
+                    }`}>
+                        {currentStep === ProcessStep.DONE ? '✅ 完了' : currentStep === ProcessStep.ERROR ? '❌ エラー' : '⚡ 進行中'}
+                    </span>
+                    <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        {progressPercentage}%
+                    </span>
+                </div>
+            </div>
             
             {/* 進捗バー */}
-            <div className="relative pt-1 mb-6">
-                <div className="flex mb-2 items-center justify-between">
-                    <div>
-                        <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
-                            {currentStep === ProcessStep.DONE ? '完了' : currentStep === ProcessStep.ERROR ? 'エラー' : '進行中'}
-                        </span>
-                    </div>
-                    <div className="text-right">
-                        <span className="text-xs font-semibold inline-block text-indigo-600">
-                            {progressPercentage}%
-                        </span>
-                    </div>
-                </div>
-                <div className="overflow-hidden h-3 mb-4 text-xs flex rounded bg-gray-200">
+            <div className="relative mb-8">
+                <div className="h-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner">
                     <div 
                         style={{ width: `${progressPercentage}%` }} 
-                        className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-500 ${
-                            currentStep === ProcessStep.ERROR ? 'bg-red-500' : 'bg-indigo-500'
-                        }`}
-                    ></div>
+                        className={`h-full transition-all duration-1000 ease-out rounded-full ${
+                            currentStep === ProcessStep.ERROR 
+                                ? 'bg-gradient-to-r from-red-400 to-red-500' 
+                                : 'bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500'
+                        } relative overflow-hidden`}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent"></div>
+                    </div>
                 </div>
             </div>
 
             {/* ステップ詳細表示 */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-6">
                 {stepDetails.filter(detail => steps.includes(detail.step)).map((detail, index) => {
                     const isCompleted = steps.indexOf(detail.step) < currentIndex;
                     const isCurrent = detail.step === currentStep;
                     const isPending = steps.indexOf(detail.step) > currentIndex;
                     
                     return (
-                        <div key={detail.step} className="text-center">
-                            <div className={`w-8 h-8 md:w-10 md:h-10 mx-auto mb-1 md:mb-2 rounded-full flex items-center justify-center text-sm md:text-base ${
-                                isCompleted ? 'bg-green-500 text-white' :
-                                isCurrent ? 'bg-indigo-500 text-white animate-pulse' :
-                                'bg-gray-200 text-gray-400'
-                            }`}>
-                                {isCompleted ? '✓' : detail.icon}
+                        <div key={detail.step} className="text-center group">
+                            <div className={`relative w-12 h-12 md:w-14 md:h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center text-lg md:text-xl font-medium shadow-lg transition-all duration-300 ${
+                                isCompleted 
+                                    ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-green-200 scale-105' 
+                                    : isCurrent 
+                                    ? 'bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 text-white shadow-purple-200 animate-pulse scale-110' 
+                                    : 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-500 shadow-gray-100'
+                            } group-hover:scale-110`}>
+                                {isCompleted ? (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                ) : detail.icon}
+                                {isCurrent && (
+                                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent"></div>
+                                )}
                             </div>
-                            <p className={`text-xs font-medium ${
-                                isCompleted ? 'text-green-600' :
-                                isCurrent ? 'text-indigo-600' :
-                                'text-gray-400'
+                            <p className={`text-sm font-semibold transition-colors duration-200 ${
+                                isCompleted 
+                                    ? 'text-green-600' 
+                                    : isCurrent 
+                                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent' 
+                                    : 'text-gray-500'
                             }`}>
                                 {detail.label}
                             </p>
@@ -86,15 +107,29 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keywo
             
             {/* 現在のステップメッセージ */}
             {currentStep !== ProcessStep.DONE && currentStep !== ProcessStep.ERROR && (
-                <p className="text-center text-gray-600 animate-pulse text-sm md:text-base">
-                    {currentStep}
-                </p>
+                <div className="text-center">
+                    <p className="text-lg font-medium bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent animate-pulse">
+                        {currentStep}
+                    </p>
+                    <div className="flex justify-center mt-3">
+                        <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* エラー表示 */}
             {error && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-center text-red-600 text-sm">{error}</p>
+                <div className="mt-6 p-4 backdrop-blur-sm bg-red-50/80 border border-red-200 rounded-xl">
+                    <div className="flex items-center justify-center">
+                        <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-red-700 font-medium">{error}</p>
+                    </div>
                 </div>
             )}
         </div>

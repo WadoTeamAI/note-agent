@@ -270,7 +270,7 @@ export async function createImagePrompt(articleTitle: string, articleContent: st
 export async function generateImage(prompt: string): Promise<string> {
     try {
         return await withRetry(async () => {
-            // Pythonのgenai.images.generate()に相当するJavaScript実装
+            // Gemini 2.5 Flash Image APIを使用した画像生成
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash-image',
                 contents: `High-quality, professional eye-catching image for Japanese note article: ${prompt}
@@ -283,7 +283,10 @@ Style requirements:
 - 16:9 aspect ratio
 - No text overlays (text will be added separately)`,
                 config: {
-                    responseMimeType: 'image/png'
+                    responseModalities: ['Image'],
+                    imageConfig: {
+                        aspectRatio: '16:9'
+                    }
                 }
             });
 
@@ -291,13 +294,18 @@ Style requirements:
             if (response.candidates && 
                 response.candidates[0] && 
                 response.candidates[0].content && 
-                response.candidates[0].content.parts && 
-                response.candidates[0].content.parts[0] && 
-                response.candidates[0].content.parts[0].inlineData) {
+                response.candidates[0].content.parts) {
                 
-                const imageData = response.candidates[0].content.parts[0].inlineData.data;
-                const mimeType = response.candidates[0].content.parts[0].inlineData.mimeType || 'image/png';
-                return `data:${mimeType};base64,${imageData}`;
+                // inlineDataを含むパートを探す
+                for (const part of response.candidates[0].content.parts) {
+                    if (part.inlineData && part.inlineData.data) {
+                        const imageData = part.inlineData.data;
+                        const mimeType = part.inlineData.mimeType || 'image/png';
+                        return `data:${mimeType};base64,${imageData}`;
+                    }
+                }
+                
+                throw new Error('画像生成に失敗しました: レスポンスに画像データが含まれていません');
             } else {
                 throw new Error('画像生成に失敗しました: レスポンス形式が不正です');
             }
@@ -305,38 +313,29 @@ Style requirements:
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         
-        // 課金エラーや未対応エラーの場合は代替画像を返す
-        if (errorMessage.includes('billed users') || 
-            errorMessage.includes('Imagen API') ||
-            errorMessage.includes('not supported') ||
-            errorMessage.includes('INVALID_ARGUMENT')) {
-            
-            console.warn('Image generation failed, using placeholder. Error:', errorMessage);
-            
-            // プレースホルダー画像のSVGを生成
-            const placeholderSvg = `<svg width="800" height="450" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#bg)"/>
-                <rect x="50" y="50" width="700" height="350" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" rx="12"/>
-                <circle cx="400" cy="180" r="50" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="2"/>
-                <text x="400" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#64748b">🎨</text>
-                <text x="400" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#334155" font-weight="bold">note記事アイキャッチ</text>
-                <text x="400" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#64748b">${prompt.substring(0, 35)}${prompt.length > 35 ? '...' : ''}</text>
-                <text x="400" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">画像生成にはGemini課金プランが必要です</text>
-                <text x="400" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#cbd5e1">Google AI Studio で課金を有効化してください</text>
-            </svg>`;
-            
-            // SVGをbase64エンコード
-            const base64Svg = btoa(unescape(encodeURIComponent(placeholderSvg)));
-            return `data:image/svg+xml;base64,${base64Svg}`;
-        }
+        // APIエラーの場合は代替画像を返す
+        console.warn('Image generation failed, using placeholder. Error:', errorMessage);
         
-        // その他のエラーの場合は再スロー
-        throw error;
+        // プレースホルダー画像のSVGを生成
+        const placeholderSvg = `<svg width="800" height="450" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#bg)"/>
+            <rect x="50" y="50" width="700" height="350" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" rx="12"/>
+            <circle cx="400" cy="180" r="50" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="2"/>
+            <text x="400" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#64748b">🎨</text>
+            <text x="400" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#334155" font-weight="bold">note記事アイキャッチ</text>
+            <text x="400" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#64748b">${prompt.substring(0, 35)}${prompt.length > 35 ? '...' : ''}</text>
+            <text x="400" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">画像生成機能を準備中です</text>
+            <text x="400" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#cbd5e1">Gemini 2.5 Flash Image API使用</text>
+        </svg>`;
+        
+        // SVGをbase64エンコード
+        const base64Svg = btoa(placeholderSvg);
+        return `data:image/svg+xml;base64,${base64Svg}`;
     }
 }

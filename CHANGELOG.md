@@ -15,6 +15,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 音声入力対応
 - SEOスコア・読みやすさ分析
 
+## [0.3.0] - 2025-10-15
+
+### Added
+- ✨ **X投稿生成機能の完全実装**（Phase 1主力機能）
+  - 短文ポスト生成（140文字以内×5パターン）
+  - 長文ポスト生成（300-500文字×2パターン）
+  - スレッド形式生成（5-7ツイート×2パターン）
+  - エンゲージメント予測機能（高/中/低）
+  - 投稿最適時間の自動提案
+- 🎨 **XPostDisplayコンポーネント**
+  - ワンクリックコピー機能
+  - 一括コピー機能（短文/長文/スレッド）
+  - エンゲージメント予測の可視化
+  - ターゲット層別の表示
+- 📝 **新規型定義**
+  - `social.types.ts`: XPost, XThread, XPostGenerationResult
+  - FinalOutputにxPosts追加
+- 🔧 **サービス追加**
+  - `xPostGenerator.ts`: X投稿生成ロジック
+  - Gemini 2.0 Flash Exp統合
+
+### Changed
+- 📚 README.md更新
+  - X投稿生成機能の詳細追加
+  - ディレクトリ構造セクション追加
+  - 使い方セクションの拡充
+- 📄 requirements.md更新
+  - X投稿生成の要件詳細化
+  - エンゲージメント最適化の追加
+- 🗂️ ディレクトリ構造の拡張
+  - `src/services/social/` 追加
+  - `src/types/social.types.ts` 追加
+  - `src/components/display/XPostDisplay.tsx` 追加
+
+### Technical Details
+- Gemini APIを使用した多様なX投稿パターン生成
+- JSON形式でのレスポンス解析
+- エンゲージメント予測アルゴリズム実装
+- 曜日・時間帯を考慮した投稿時間提案ロジック
+
 ### Planned (Phase 2)
 - RAG統合（外部ナレッジベース参照）
 - note自動投稿API連携

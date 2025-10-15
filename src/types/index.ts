@@ -7,6 +7,8 @@
 export * from './article.types';
 // API関連の型を再エクスポート
 export * from './api.types';
+// ソーシャルメディア関連の型を再エクスポート
+export * from './social.types';
 
 export enum Tone {
   POLITE = '丁寧で落ち着いた',

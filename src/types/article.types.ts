@@ -2,6 +2,8 @@
  * 記事関連の型定義
  */
 
+import { XPostGenerationResult } from './social.types';
+
 export interface ArticleOutline {
   title: string;
   metaDescription: string;
@@ -20,14 +22,8 @@ export interface FinalOutput {
   markdownContent: string;
   imageUrl: string;
   metaDescription: string;
-  xPosts?: XPost[];
+  xPosts?: XPostGenerationResult;
   researchData?: ResearchData;
-}
-
-export interface XPost {
-  target: string;
-  text: string;
-  type: 'short' | 'long' | 'thread';
 }
 
 export interface ResearchData {

@@ -24,12 +24,14 @@ const InputGroup: React.FC<InputGroupProps> = ({
     as = 'input',
     options = [],
 }) => {
-    const commonClasses = "w-full px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out";
+    const baseClasses = "w-full px-4 py-3 backdrop-blur-sm bg-white/60 border border-white/30 rounded-xl shadow-lg focus:ring-4 focus:ring-purple-200/50 focus:border-purple-300 focus:bg-white/80 hover:bg-white/70 transition-all duration-300 ease-in-out placeholder-gray-400 text-gray-700";
+    
+    const selectClasses = "w-full px-4 py-3 backdrop-blur-sm bg-white/60 border border-white/30 rounded-xl shadow-lg focus:ring-4 focus:ring-purple-200/50 focus:border-purple-300 focus:bg-white/80 hover:bg-white/70 transition-all duration-300 ease-in-out text-gray-700 cursor-pointer";
 
     return (
-        <div className="mb-4">
-            <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
-                {label}
+        <div className="group">
+            <label htmlFor={id} className="block text-sm font-semibold text-gray-700 mb-3 group-hover:text-purple-600 transition-colors duration-200">
+                {label} {required && <span className="text-pink-500">*</span>}
             </label>
             {as === 'input' ? (
                 <input
@@ -40,7 +42,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
                     onChange={onChange}
                     placeholder={placeholder}
                     required={required}
-                    className={commonClasses}
+                    className={baseClasses}
                 />
             ) : (
                 <select
@@ -49,10 +51,10 @@ const InputGroup: React.FC<InputGroupProps> = ({
                     value={value}
                     onChange={onChange}
                     required={required}
-                    className={commonClasses}
+                    className={selectClasses}
                 >
                     {options.map((option) => (
-                        <option key={option} value={option}>
+                        <option key={option} value={option} className="bg-white text-gray-700">
                             {option}
                         </option>
                     ))}
