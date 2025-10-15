@@ -219,6 +219,8 @@ export class SpeechRecognitionService {
    */
   async processVoiceIdea(transcript: string): Promise<VoiceIdeaResult | null> {
     try {
+      console.log('音声アイデア処理開始:', transcript);
+      
       const prompt = `以下は音声入力で取得したアイデアのテキストです。このアイデアを分析し、note記事作成に最適な形に整理してください。
 
 音声入力内容:
@@ -241,18 +243,26 @@ export class SpeechRecognitionService {
 - targetAudienceとtoneは音声の内容から推測
 - additionalNotesには具体的なアドバイスを含める`;
 
+      console.log('AI処理開始...');
       const response = await generateText(prompt);
+      console.log('AI応答受信:', response);
       
       // JSONレスポンスを解析
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error('Invalid JSON response');
+        console.error('JSON形式の応答が見つかりません:', response);
+        throw new Error('Invalid JSON response from AI');
       }
 
       const result = JSON.parse(jsonMatch[0]) as VoiceIdeaResult;
+      console.log('音声アイデア処理成功:', result);
       return result;
     } catch (error) {
-      console.error('音声アイデア処理エラー:', error);
+      console.error('音声アイデア処理エラーの詳細:', error);
+      if (error instanceof Error) {
+        console.error('エラーメッセージ:', error.message);
+        console.error('エラースタック:', error.stack);
+      }
       return null;
     }
   }

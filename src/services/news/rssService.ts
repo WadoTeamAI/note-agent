@@ -1,34 +1,21 @@
 import { NewsArticle, RSSFeed, RSSFeedItem, NewsSource, NewsCategory } from '../../types/news.types';
 
 export class RSSService {
-    private corsProxy = 'https://api.allorigins.win/get?url=';
+    private corsProxies = [
+        'https://api.allorigins.win/get?url=',
+        'https://cors-anywhere.herokuapp.com/',
+        'https://api.codetabs.com/v1/proxy?quest='
+    ];
+    private currentProxyIndex = 0;
     
-    // 主要な日本語RSSフィード
+    // 主要な日本語RSSフィード（よりアクセスしやすいソースを優先）
     private defaultFeeds: NewsSource[] = [
         {
-            id: 'yahoo-news-it',
-            name: 'Yahoo!ニュース IT・科学',
-            url: 'https://news.yahoo.co.jp/rss/categories/it.xml',
+            id: 'nhk-news',
+            name: 'NHKニュース',
+            url: 'https://www3.nhk.or.jp/rss/news/cat0.xml',
             type: 'rss',
-            category: NewsCategory.TECHNOLOGY,
-            language: 'ja',
-            enabled: true
-        },
-        {
-            id: 'yahoo-news-business',
-            name: 'Yahoo!ニュース 経済',
-            url: 'https://news.yahoo.co.jp/rss/categories/business.xml',
-            type: 'rss',
-            category: NewsCategory.BUSINESS,
-            language: 'ja',
-            enabled: true
-        },
-        {
-            id: 'itmedia-news',
-            name: 'ITmedia NEWS',
-            url: 'https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml',
-            type: 'rss',
-            category: NewsCategory.TECHNOLOGY,
+            category: NewsCategory.GENERAL,
             language: 'ja',
             enabled: true
         },
@@ -42,9 +29,27 @@ export class RSSService {
             enabled: true
         },
         {
-            id: 'nikkei-tech',
-            name: '日経 xTECH',
-            url: 'https://xtech.nikkei.com/rss/index.rdf',
+            id: 'itmedia-news',
+            name: 'ITmedia NEWS',
+            url: 'https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml',
+            type: 'rss',
+            category: NewsCategory.TECHNOLOGY,
+            language: 'ja',
+            enabled: true
+        },
+        {
+            id: 'cnet-japan',
+            name: 'CNET Japan',
+            url: 'https://feeds.japan.cnet.com/rss/index.rdf',
+            type: 'rss',
+            category: NewsCategory.TECHNOLOGY,
+            language: 'ja',
+            enabled: true
+        },
+        {
+            id: 'gizmodo-jp',
+            name: 'ギズモード・ジャパン',
+            url: 'https://www.gizmodo.jp/index.xml',
             type: 'rss',
             category: NewsCategory.TECHNOLOGY,
             language: 'ja',
@@ -53,22 +58,61 @@ export class RSSService {
     ];
 
     async fetchRSSFeed(feedUrl: string): Promise<RSSFeed> {
-        try {
-            const proxyUrl = `${this.corsProxy}${encodeURIComponent(feedUrl)}`;
-            const response = await fetch(proxyUrl);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        let lastError: Error | null = null;
+        
+        // 複数のプロキシを試行
+        for (let i = 0; i < this.corsProxies.length; i++) {
+            try {
+                const proxy = this.corsProxies[(this.currentProxyIndex + i) % this.corsProxies.length];
+                let proxyUrl: string;
+                let response: Response;
+                
+                if (proxy.includes('allorigins.win')) {
+                    proxyUrl = `${proxy}${encodeURIComponent(feedUrl)}`;
+                    response = await fetch(proxyUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    if (!data.contents) {
+                        throw new Error('No contents in response');
+                    }
+                    
+                    return this.parseRSSXML(data.contents);
+                } else if (proxy.includes('codetabs.com')) {
+                    proxyUrl = `${proxy}${encodeURIComponent(feedUrl)}`;
+                    response = await fetch(proxyUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const xmlContent = await response.text();
+                    return this.parseRSSXML(xmlContent);
+                } else {
+                    // cors-anywhere style proxy
+                    proxyUrl = `${proxy}${feedUrl}`;
+                    response = await fetch(proxyUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const xmlContent = await response.text();
+                    return this.parseRSSXML(xmlContent);
+                }
+            } catch (error) {
+                console.warn(`Proxy ${i + 1} failed for ${feedUrl}:`, error);
+                lastError = error instanceof Error ? error : new Error('Unknown error');
+                continue;
             }
-            
-            const data = await response.json();
-            const xmlContent = data.contents;
-            
-            return this.parseRSSXML(xmlContent);
-        } catch (error) {
-            console.error(`Failed to fetch RSS feed from ${feedUrl}:`, error);
-            throw new Error(`RSS feed fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
+        
+        // すべてのプロキシが失敗した場合
+        console.error(`All proxies failed for RSS feed ${feedUrl}:`, lastError);
+        throw new Error(`RSS feed fetch failed: ${lastError?.message || 'All proxies failed'}`);
     }
 
     private parseRSSXML(xmlContent: string): RSSFeed {

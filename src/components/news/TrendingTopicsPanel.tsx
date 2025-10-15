@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NewsInsight, ArticleGenerationSuggestion, TrendingTopic } from '../../types/news.types';
-import { RSSService } from '../../services/news/rssService';
+import { HybridNewsService } from '../../services/news/hybridNewsService';
 import { TrendAnalyzer } from '../../services/news/trendAnalyzer';
 
 interface TrendingTopicsPanelProps {

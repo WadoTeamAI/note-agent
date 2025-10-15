@@ -4,16 +4,28 @@ import XPostDisplay from './XPostDisplay';
 import FactCheckDisplay from './FactCheckDisplay';
 import NoteAutoPost from '../automation/NoteAutoPost';
 import SEOKeywordDisplay from '../seo/SEOKeywordDisplay';
+import NoteStylePreview from '../preview/NoteStylePreview';
+
+type PreviewMode = 'markdown' | 'preview';
 
 interface OutputDisplayProps {
     output: FinalOutput;
 }
+
+/**
+ * Markdownから最初のH1タイトルを抽出
+ */
+const extractTitle = (markdown: string): string => {
+    const titleMatch = markdown.match(/^#\s+(.+)$/m);
+    return titleMatch ? titleMatch[1] : '無題の記事';
+};
 
 const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
     const [copiedContent, setCopiedContent] = useState(false);
     const [copiedMeta, setCopiedMeta] = useState(false);
     const [postStatus, setPostStatus] = useState<string | null>(null);
     const [postError, setPostError] = useState<string | null>(null);
+    const [previewMode, setPreviewMode] = useState<PreviewMode>('preview');
 
     const handleCopyContent = () => {
         navigator.clipboard.writeText(output.markdownContent).then(() => {
@@ -154,7 +166,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
             <div className="backdrop-blur-sm bg-white/50 p-6 rounded-xl border border-white/30">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
                     <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        ✍️ 記事本文 (Markdown)
+                        ✍️ 記事本文
                     </h3>
                     <button 
                         onClick={handleCopyContent}
@@ -181,11 +193,39 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
                         )}
                     </button>
                 </div>
-                <div className="backdrop-blur-sm bg-white/60 p-4 rounded-xl border border-white/20 overflow-hidden">
-                    <pre className="text-sm overflow-x-auto max-h-96 text-gray-700 font-mono leading-relaxed">
-                        <code>{output.markdownContent}</code>
-                    </pre>
+
+                {/* プレビューモード切り替え */}
+                <div className="preview-mode-toggle mb-4">
+                    <button
+                        onClick={() => setPreviewMode('preview')}
+                        className={`preview-mode-button ${previewMode === 'preview' ? 'active' : ''}`}
+                    >
+                        👁️ note風プレビュー
+                    </button>
+                    <button
+                        onClick={() => setPreviewMode('markdown')}
+                        className={`preview-mode-button ${previewMode === 'markdown' ? 'active' : ''}`}
+                    >
+                        📝 Markdown
+                    </button>
                 </div>
+
+                {/* プレビュー表示またはMarkdown表示 */}
+                {previewMode === 'preview' ? (
+                    <div className="backdrop-blur-sm bg-white/90 rounded-xl border border-white/20 overflow-hidden">
+                        <NoteStylePreview
+                            title={extractTitle(output.markdownContent)}
+                            content={output.markdownContent}
+                            imageUrl={output.imageUrl}
+                        />
+                    </div>
+                ) : (
+                    <div className="backdrop-blur-sm bg-white/60 p-4 rounded-xl border border-white/20 overflow-hidden">
+                        <pre className="text-sm overflow-x-auto max-h-96 text-gray-700 font-mono leading-relaxed">
+                            <code>{output.markdownContent}</code>
+                        </pre>
+                    </div>
+                )}
             </div>
 
             {/* note自動投稿 */}

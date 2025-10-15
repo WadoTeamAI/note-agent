@@ -32,16 +32,23 @@ export const VoiceIdeaProcessor: React.FC<VoiceIdeaProcessorProps> = ({
     setError(null);
 
     try {
+      console.log('VoiceIdeaProcessor: 音声アイデア処理開始');
       const result = await speechRecognitionService.processVoiceIdea(transcript);
       
       if (result) {
+        console.log('VoiceIdeaProcessor: 処理成功', result);
         setProcessedResult(result);
       } else {
-        setError('音声アイデアの処理に失敗しました。もう一度お試しください。');
+        console.error('VoiceIdeaProcessor: 処理結果がnull');
+        setError('音声アイデアの処理に失敗しました。ネットワーク接続やAPIキーを確認してから再試行してください。');
       }
     } catch (error) {
-      console.error('Voice idea processing error:', error);
-      setError('音声アイデアの処理中にエラーが発生しました。');
+      console.error('VoiceIdeaProcessor error:', error);
+      if (error instanceof Error) {
+        setError(`音声アイデアの処理エラー: ${error.message}`);
+      } else {
+        setError('音声アイデアの処理中に予期しないエラーが発生しました。');
+      }
     } finally {
       setIsProcessing(false);
     }

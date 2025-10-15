@@ -5,6 +5,7 @@ import App from './App';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './styles/global.css';
 import './styles/theme.css';
+import './styles/note-preview.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
