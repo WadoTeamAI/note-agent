@@ -219,6 +219,14 @@ const App: React.FC = () => {
                 </div>
             </main>
 
+            {/* トレンド記事提案パネル */}
+            {showTrendingPanel && (
+                <TrendingTopicsPanel 
+                    onClose={() => setShowTrendingPanel(false)}
+                    onSelectSuggestion={handleSuggestionSelect}
+                />
+            )}
+
             {/* バッチ生成パネル */}
             {showBatchGenerator && (
                 <BatchGenerator onClose={() => setShowBatchGenerator(false)} />
