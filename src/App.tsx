@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Tone, Audience, FormData, FinalOutput, ProcessStep } from './types';
-import { TONE_OPTIONS, AUDIENCE_OPTIONS, isYouTubeURL } from './config/constants';
+import { Tone, Audience, FormData, FinalOutput, ProcessStep, ArticleCategory } from './types';
+import { TONE_OPTIONS, AUDIENCE_OPTIONS, CATEGORY_OPTIONS, isYouTubeURL } from './config/constants';
 import * as geminiService from './services/ai/geminiService';
 import { generateXPosts } from './services/social/xPostGenerator';
 import { extractClaims, performFactCheck } from './services/research/tavilyService';
@@ -32,6 +32,42 @@ const App: React.FC = () => {
         audience: Audience.BEGINNER,
         targetLength: 2500,
         imageTheme: 'PC作業をする人',
+        category: ArticleCategory.BUSINESS,
+        contentStructure: {
+            includeIntroduction: true,
+            includeFAQ: true,
+            includeConclusion: true,
+            sectionCount: 5,
+            includeTOC: true,
+            includeCallToAction: true,
+        },
+        seoSettings: {
+            focusKeyword: '副業 始め方',
+            relatedKeywords: ['副業', '初心者', '在宅ワーク'],
+            metaDescriptionLength: 120,
+            includeSchema: true,
+            targetSearchIntent: 'informational',
+            enableKeywordDensityOptimization: true,
+        },
+        imageSettings: {
+            style: 'リアル',
+            colorTone: '明るい',
+            aspectRatio: '16:9',
+            includeEyecatch: true,
+            includeInlineGraphics: false,
+            graphicsCount: 0,
+        },
+        publishSettings: {
+            targetPlatforms: ['note'],
+            enableAnalytics: true,
+            enableSEOOptimization: true,
+            autoPublish: false,
+            notificationSettings: {
+                email: false,
+                slack: false,
+                discord: false,
+            },
+        },
     });
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<ProcessStep>(ProcessStep.IDLE);
@@ -49,17 +85,41 @@ const App: React.FC = () => {
     const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState<boolean>(false);
     const [showXPostManager, setShowXPostManager] = useState<boolean>(false);
     const [currentXPosts, setCurrentXPosts] = useState<PreparedPost[]>([]);
+    const [activeFormTab, setActiveFormTab] = useState<string>('basic');
     
     // 承認ワークフローマネージャーの初期化
     const workflowManager = useRef(new ApprovalWorkflowManager());
     const analyticsService = useRef(new AnalyticsService());
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: name === 'targetLength' ? parseInt(value, 10) : value,
-        }));
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
+        const checked = (e.target as HTMLInputElement).checked;
+        
+        // ネストしたオブジェクトのフィールドを処理
+        if (name.includes('.')) {
+            const [parentField, childField] = name.split('.');
+            setFormData(prev => ({
+                ...prev,
+                [parentField]: {
+                    ...prev[parentField as keyof FormData] as any,
+                    [childField]: 
+                        type === 'checkbox' ? checked
+                        : childField === 'sectionCount' || childField === 'metaDescriptionLength' || childField === 'graphicsCount'
+                            ? parseInt(value as string, 10)
+                        : childField === 'relatedKeywords' || childField === 'targetPlatforms'
+                            ? Array.isArray(value) ? value : [value]
+                        : value
+                }
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: 
+                    type === 'checkbox' ? checked
+                    : name === 'targetLength' ? parseInt(value as string, 10) 
+                    : value,
+            }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -72,7 +132,6 @@ const App: React.FC = () => {
         // 分析用のタイミング記録
         const stepTimings: Record<string, number> = {};
         const errors: any[] = [];
-        const startTime = performance.now();
 
         try {
             // 承認ワークフローを作成
@@ -414,11 +473,96 @@ const App: React.FC = () => {
                                 記事設定
                             </h2>
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <InputGroup label="記事のテーマ・キーワード" id="keyword" value={formData.keyword} onChange={handleChange} placeholder="例: 副業 始め方" required />
-                                <InputGroup label="文体 (トーン)" id="tone" as="select" options={TONE_OPTIONS} value={formData.tone} onChange={handleChange} />
-                                <InputGroup label="想定する読者層" id="audience" as="select" options={AUDIENCE_OPTIONS} value={formData.audience} onChange={handleChange} />
-                                <InputGroup label="目安文字数" id="targetLength" type="number" value={formData.targetLength} onChange={handleChange} />
-                                <InputGroup label="画像テーマ" id="imageTheme" value={formData.imageTheme} onChange={handleChange} placeholder="例: PC作業をする人、カフェで読書する女性" />
+                                {/* タブナビゲーション */}
+                                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveFormTab('basic')}
+                                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                                            activeFormTab === 'basic' 
+                                                ? 'bg-white text-purple-600 shadow-sm' 
+                                                : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        基本設定
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveFormTab('content')}
+                                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                                            activeFormTab === 'content' 
+                                                ? 'bg-white text-purple-600 shadow-sm' 
+                                                : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        記事構成
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveFormTab('seo')}
+                                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                                            activeFormTab === 'seo' 
+                                                ? 'bg-white text-purple-600 shadow-sm' 
+                                                : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        SEO・画像
+                                    </button>
+                                </div>
+
+                                {/* 基本設定タブ */}
+                                {activeFormTab === 'basic' && (
+                                    <div className="space-y-4">
+                                        <InputGroup label="記事のテーマ・キーワード" id="keyword" value={formData.keyword} onChange={handleChange} placeholder="例: 副業 始め方" required />
+                                        <InputGroup label="記事カテゴリ" id="category" as="select" options={CATEGORY_OPTIONS} value={formData.category} onChange={handleChange} />
+                                        <InputGroup label="文体 (トーン)" id="tone" as="select" options={TONE_OPTIONS} value={formData.tone} onChange={handleChange} />
+                                        <InputGroup label="想定する読者層" id="audience" as="select" options={AUDIENCE_OPTIONS} value={formData.audience} onChange={handleChange} />
+                                        <InputGroup label="目安文字数" id="targetLength" type="number" value={formData.targetLength} onChange={handleChange} />
+                                        <InputGroup label="画像テーマ" id="imageTheme" value={formData.imageTheme} onChange={handleChange} placeholder="例: PC作業をする人、カフェで読書する女性" />
+                                    </div>
+                                )}
+
+                                {/* 記事構成設定タブ */}
+                                {activeFormTab === 'content' && (
+                                    <div className="space-y-4">
+                                        <InputGroup label="見出し数" id="contentStructure.sectionCount" type="number" value={formData.contentStructure.sectionCount} onChange={handleChange} />
+                                        <InputGroup label="導入文を含める" id="contentStructure.includeIntroduction" as="checkbox" value={formData.contentStructure.includeIntroduction} onChange={handleChange} placeholder="記事の導入文を自動生成" />
+                                        <InputGroup label="FAQ セクションを含める" id="contentStructure.includeFAQ" as="checkbox" value={formData.contentStructure.includeFAQ} onChange={handleChange} placeholder="よくある質問を自動生成" />
+                                        <InputGroup label="まとめを含める" id="contentStructure.includeConclusion" as="checkbox" value={formData.contentStructure.includeConclusion} onChange={handleChange} placeholder="記事のまとめを自動生成" />
+                                        <InputGroup label="目次を含める" id="contentStructure.includeTOC" as="checkbox" value={formData.contentStructure.includeTOC} onChange={handleChange} placeholder="目次を自動生成" />
+                                        <InputGroup label="行動喚起を含める" id="contentStructure.includeCallToAction" as="checkbox" value={formData.contentStructure.includeCallToAction} onChange={handleChange} placeholder="読者の行動を促す文章を追加" />
+                                        <InputGroup label="公開予定プラットフォーム" id="publishSettings.targetPlatforms" as="multi-select" options={['note', 'blog', 'qiita', 'zenn', 'hatena']} value={formData.publishSettings.targetPlatforms} onChange={handleChange} />
+                                    </div>
+                                )}
+
+                                {/* SEO・画像設定タブ */}
+                                {activeFormTab === 'seo' && (
+                                    <div className="space-y-4">
+                                        <h4 className="font-semibold text-gray-700 border-b pb-2">SEO設定</h4>
+                                        <InputGroup label="フォーカスキーワード" id="seoSettings.focusKeyword" value={formData.seoSettings.focusKeyword} onChange={handleChange} placeholder="主要キーワード" />
+                                        <InputGroup label="関連キーワード (カンマ区切り)" id="seoSettings.relatedKeywords" as="textarea" rows={2} value={formData.seoSettings.relatedKeywords.join(', ')} onChange={(e) => {
+                                            const syntheticEvent = {
+                                                target: {
+                                                    name: 'seoSettings.relatedKeywords',
+                                                    value: e.target.value.split(', ').filter(keyword => keyword.trim() !== '')
+                                                }
+                                            } as unknown as React.ChangeEvent<HTMLTextAreaElement>;
+                                            handleChange(syntheticEvent);
+                                        }} placeholder="副業, 初心者, 在宅ワーク" />
+                                        <InputGroup label="メタ説明文の文字数" id="seoSettings.metaDescriptionLength" type="number" value={formData.seoSettings.metaDescriptionLength} onChange={handleChange} />
+                                        <InputGroup label="構造化データを含める" id="seoSettings.includeSchema" as="checkbox" value={formData.seoSettings.includeSchema} onChange={handleChange} placeholder="SEO向上のための構造化データ" />
+                                        
+                                        <h4 className="font-semibold text-gray-700 border-b pb-2 mt-6">画像設定</h4>
+                                        <InputGroup label="画像スタイル" id="imageSettings.style" as="select" options={['リアル', 'イラスト', 'アイコン', 'グラフィック']} value={formData.imageSettings.style} onChange={handleChange} />
+                                        <InputGroup label="色調" id="imageSettings.colorTone" as="select" options={['明るい', '落ち着いた', 'モノクロ', 'カラフル']} value={formData.imageSettings.colorTone} onChange={handleChange} />
+                                        <InputGroup label="アスペクト比" id="imageSettings.aspectRatio" as="select" options={['16:9', '4:3', '1:1', '3:2']} value={formData.imageSettings.aspectRatio} onChange={handleChange} />
+                                        <InputGroup label="アイキャッチ画像を生成" id="imageSettings.includeEyecatch" as="checkbox" value={formData.imageSettings.includeEyecatch} onChange={handleChange} placeholder="記事のメイン画像を生成" />
+                                        <InputGroup label="インライン図解を生成" id="imageSettings.includeInlineGraphics" as="checkbox" value={formData.imageSettings.includeInlineGraphics} onChange={handleChange} placeholder="記事内の説明図を生成" />
+                                        {formData.imageSettings.includeInlineGraphics && (
+                                            <InputGroup label="図解の数" id="imageSettings.graphicsCount" type="number" value={formData.imageSettings.graphicsCount} onChange={handleChange} />
+                                        )}
+                                    </div>
+                                )}
 
                                 <button 
                                     type="submit" 
