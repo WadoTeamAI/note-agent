@@ -846,15 +846,39 @@ MIT License
 
 ---
 
-## 🔗 参考リンク
+## 📖 ドキュメント
 
-- [Google Gemini API Documentation](https://ai.google.dev/)
-- [Vite Documentation](https://vitejs.dev/)
-- [React Documentation](https://react.dev/)
-- [TypeScript Documentation](https://www.typescriptlang.org/)
-- [要件定義書](./requirements.md) - 詳細な機能仕様
+### 主要ドキュメント
+- **README** (このファイル) - プロジェクト概要
+- **[requirements.md](./requirements.md)** - 詳細な機能要件定義（780行）
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - 実装進捗・開発状況
+
+### 技術ドキュメント
+- **[docs/INSTALLATION.md](./docs/INSTALLATION.md)** - インストール・セットアップガイド
+- **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - システムアーキテクチャ
+- **[docs/setup-supabase.md](./docs/setup-supabase.md)** - Supabaseセットアップ
+
+### 開発ドキュメント
+- **[CLAUDE.md](./CLAUDE.md)** - Claude Code用開発ガイド
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - コントリビューションガイド
+- **[CHANGELOG.md](./CHANGELOG.md)** - バージョン履歴・変更ログ
+
+### 分析・参考資料
+- **[Competitive-analysis.md](./Competitive-analysis.md)** - 競合サービス分析
+
+### 外部リンク
+- [Google Gemini AI](https://ai.google.dev/) - AI API
+- [Next.js 15](https://nextjs.org/) - フレームワーク
+- [React 19](https://react.dev/) - UI
+- [TypeScript](https://www.typescriptlang.org/) - 型システム
+- [Supabase](https://supabase.com/) - バックエンド
+- [Playwright](https://playwright.dev/) - ブラウザ自動化
 - [Mermaid.js](https://mermaid.js.org/) - 図解生成
 - [LangChain](https://www.langchain.com/) - AIエージェント構築
+
+---
+
+## 🔗 参考リンク（旧セクション - 上記に統合）
 
 ---
 
