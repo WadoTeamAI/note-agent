@@ -3,9 +3,11 @@ import { Tone, Audience, FormData, FinalOutput, ProcessStep } from './types';
 import { TONE_OPTIONS, AUDIENCE_OPTIONS, isYouTubeURL } from './config/constants';
 import * as geminiService from './services/ai/geminiService';
 import { generateXPosts } from './services/social/xPostGenerator';
+import { saveArticleHistory } from './services/database/historyService';
 import InputGroup from './components/forms/InputGroup';
 import StepIndicator from './components/feedback/StepIndicator';
 import OutputDisplay from './components/display/OutputDisplay';
+import HistoryPanel from './components/history/HistoryPanel';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -19,6 +21,7 @@ const App: React.FC = () => {
     const [currentStep, setCurrentStep] = useState<ProcessStep>(ProcessStep.IDLE);
     const [output, setOutput] = useState<FinalOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -67,13 +70,37 @@ const App: React.FC = () => {
                 targetAudiences: ['初心者', '中級者', 'ビジネスパーソン', '主婦・主夫', '学生'],
             });
 
-            setOutput({ 
+            const finalOutput = { 
                 markdownContent, 
                 imageUrl, 
                 metaDescription: outline.metaDescription,
                 xPosts 
-            });
+            };
+            
+            setOutput(finalOutput);
             setCurrentStep(ProcessStep.DONE);
+
+            // 履歴保存（Supabase利用可能な場合）
+            const startTime = Date.now();
+            const generationTimeMs = Date.now() - startTime;
+            
+            try {
+                await saveArticleHistory({
+                    inputKeyword: formData.keyword,
+                    inputTone: formData.tone,
+                    inputAudience: formData.audience,
+                    inputTargetLength: formData.targetLength,
+                    inputImageTheme: formData.imageTheme,
+                    finalOutput,
+                    analysisData: analysis,
+                    outlineData: outline,
+                    generationTimeMs,
+                    workflowSteps: ['ANALYZING', 'OUTLINING', 'WRITING', 'GENERATING_IMAGE', 'GENERATING_X_POSTS'],
+                });
+                console.log('記事履歴を保存しました');
+            } catch (historyError) {
+                console.warn('履歴保存に失敗:', historyError);
+            }
 
         } catch (err) {
             console.error(err);
@@ -92,11 +119,19 @@ const App: React.FC = () => {
             {/* Header */}
             <header className="relative backdrop-blur-sm bg-white/80 border-b border-white/20 shadow-lg">
                 <div className="container mx-auto px-6 py-6">
-                    <div className="text-center">
-                        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                            note記事自動生成エージェント
-                        </h1>
-                        <p className="text-gray-600 text-lg font-medium">noteの記事作成をAIで自動化し、あなたの執筆活動をサポートします</p>
+                    <div className="flex justify-between items-center">
+                        <div className="flex-1 text-center">
+                            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                                note記事自動生成エージェント
+                            </h1>
+                            <p className="text-gray-600 text-lg font-medium">noteの記事作成をAIで自動化し、あなたの執筆活動をサポートします</p>
+                        </div>
+                        <button
+                            onClick={() => setShowHistoryPanel(true)}
+                            className="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                        >
+                            📚 履歴
+                        </button>
                     </div>
                 </div>
             </header>
@@ -162,6 +197,23 @@ const App: React.FC = () => {
                     </div>
                 </div>
             </main>
+
+            {/* 履歴パネル */}
+            <HistoryPanel
+                isOpen={showHistoryPanel}
+                onClose={() => setShowHistoryPanel(false)}
+                onSelectHistory={(history) => {
+                    // 履歴から記事を復元
+                    if (history.markdown_content && history.meta_description) {
+                        setOutput({
+                            markdownContent: history.markdown_content,
+                            imageUrl: history.image_url || '',
+                            metaDescription: history.meta_description,
+                        });
+                        setCurrentStep(ProcessStep.DONE);
+                    }
+                }}
+            />
 
         </div>
     );
