@@ -404,9 +404,9 @@ Style requirements:
             <text x="400" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#cbd5e1">Gemini 2.5 Flash Image API使用</text>
         </svg>`;
         
-        // SVGをbase64エンコード
-        const base64Svg = btoa(placeholderSvg);
-        return `data:image/svg+xml;base64,${base64Svg}`;
+        // SVGをUTF-8対応でエンコード
+        const encodedSvg = encodeURIComponent(placeholderSvg);
+        return `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
     }
 }
 
