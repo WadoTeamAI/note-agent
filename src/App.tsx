@@ -7,6 +7,7 @@ import { extractClaims, performFactCheck } from './services/research/tavilyServi
 import InputGroup from './components/forms/InputGroup';
 import StepIndicator from './components/feedback/StepIndicator';
 import OutputDisplay from './components/display/OutputDisplay';
+import BatchGenerator from './components/batch/BatchGenerator';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -21,6 +22,7 @@ const App: React.FC = () => {
     const [output, setOutput] = useState<FinalOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
+    const [showBatchGenerator, setShowBatchGenerator] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -135,12 +137,20 @@ const App: React.FC = () => {
                             </h1>
                             <p className="text-gray-600 text-lg font-medium">noteの記事作成をAIで自動化し、あなたの執筆活動をサポートします</p>
                         </div>
-                        <button
-                            onClick={() => setShowHistoryPanel(true)}
-                            className="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
-                        >
-                            📚 履歴
-                        </button>
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={() => setShowBatchGenerator(true)}
+                                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                            >
+                                📚 バッチ生成
+                            </button>
+                            <button
+                                onClick={() => setShowHistoryPanel(true)}
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                            >
+                                📋 履歴
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -206,6 +216,11 @@ const App: React.FC = () => {
                     </div>
                 </div>
             </main>
+
+            {/* バッチ生成パネル */}
+            {showBatchGenerator && (
+                <BatchGenerator onClose={() => setShowBatchGenerator(false)} />
+            )}
 
             {/* 履歴パネル - Phase 2で実装予定 */}
             {/* <HistoryPanel
