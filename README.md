@@ -8,7 +8,7 @@
 
 ## 🎯 概要
 
-ノート記事自動生成エージェント（**Note Agent AI**）は、Google Gemini AIを活用して、キーワードから完全なnote記事を自動生成するWebアプリケーションです。**統合リサーチ機能**を起点とした7段階のAIワークフローを通じて、最新トレンド分析、SEO最適化、記事執筆、画像生成、SNS展開文まで一気通貫で自動化します。
+ノート記事自動生成エージェント（**Note Agent AI**）は、Google Gemini AIを活用して、キーワードから完全なnote記事を自動生成するWebアプリケーションです。**統合リサーチ機能**を起点とした8段階のAIワークフローを通じて、最新トレンド分析、SEO最適化、記事執筆、ファクトチェック、画像生成、SNS展開文まで一気通貫で自動化します。
 
 **「リサーチと戦略に集中できる環境」**を提供し、AIっぽくない自然な文章で読者に響く記事を生成します。note特化の最適化により、プラットフォームのアルゴリズムを理解した記事構成を実現し、スキ数・閲覧数の向上を支援します。
 
@@ -71,7 +71,7 @@
   - マルチプラットフォーム対応（X/Threads/Instagram/LinkedIn）【将来対応】
 
 - 📊 **リアルタイム進捗表示**
-  - 7段階の生成プロセスを可視化
+  - 8段階の生成プロセスを可視化（リサーチ → SEO分析 → 構成作成 → 執筆 → ファクトチェック → 画像生成 → X告知文）
   - 段階的レンダリング（生成途中の表示）
 
 - 📏 **長文対応**
@@ -82,6 +82,15 @@
   - 高品質モード（Gemini 2.5 Pro - 約60秒）
 
 ### 🎁 新機能（Phase 1.5以降）
+
+- ✓ **ファクトチェック機能** ✅ **実装完了**
+  - Tavily APIを使用した自動ファクトチェック
+  - 記事内の主張・統計・事実を3〜5個自動抽出
+  - 各主張を検証し、正確性判定（正確/不正確/部分的に正確/未検証）
+  - 信頼度評価（高/中/低）と修正提案
+  - 参照ソース表示（URL、関連度スコア、公開日）
+  - レビュー推奨アラート（不正確な情報が含まれる場合）
+  - モック対応（Tavily APIキーなしでも動作確認可能）
 
 - 🎙️ **音声入力対応**
   - スマホ・PCから音声でアイデアを入力
@@ -147,6 +156,7 @@
 
 ### 外部API連携
 - **Google Search API** （検索トレンド分析）
+- **Tavily API** （ファクトチェック） ✨ **NEW**
 - **YouTube Data API** （動画分析）
 - **Reddit API** （コミュニティ分析）
 - 将来: **note API**、**X API**
@@ -261,6 +271,9 @@ GEMINI_API_KEY=your_gemini_api_key_here
 GOOGLE_SEARCH_API_KEY=your_search_api_key_here
 GOOGLE_SEARCH_ENGINE_ID=your_search_engine_id_here
 
+# オプション（ファクトチェック機能を有効化する場合 - Phase 1.5）
+TAVILY_API_KEY=your_tavily_api_key_here
+
 # オプション（将来の機能用）
 # UNSPLASH_API_KEY=your_unsplash_key_here
 # YOUTUBE_API_KEY=your_youtube_key_here
@@ -297,7 +310,7 @@ npm run dev
 
 #### 2️⃣ 生成プロセス
 
-送信ボタンをクリックすると、以下の7段階で記事が生成されます：
+送信ボタンをクリックすると、以下の8段階で記事が生成されます：
 
 ```
 0. 🔬 RESEARCH           統合リサーチ（10秒）
@@ -308,14 +321,16 @@ npm run dev
    ↓
 3. ✍️ WRITING            記事執筆（25秒）
    ↓
-4. 🎨 IMAGE_GENERATION   画像生成（5秒）
+4. ✓ FACT_CHECKING      ファクトチェック（8秒） ✨ **NEW in Phase 1.5!**
    ↓
-5. 🐦 X_POST_GENERATION  SNS告知文生成（7秒）
+5. 🎨 IMAGE_GENERATION   画像生成（5秒）
    ↓
-6. ✅ OUTPUT             出力整形・表示（2秒）
+6. 🐦 X_POST_GENERATION  SNS告知文生成（7秒）
+   ↓
+7. ✅ OUTPUT             出力整形・表示（2秒）
 ```
 
-**合計: 約60秒**（Flashモード、5,000文字基準）
+**合計: 約70秒**（Flashモード、5,000文字基準）
 
 #### 3️⃣ 出力
 
@@ -325,7 +340,14 @@ npm run dev
 - ✅ **メタディスクリプション**
 - ✅ **アイキャッチ画像**（base64形式）
 - ✅ **差し込み図解**（オプション）
-- ✅ **X告知文** ✨ **NEW!**
+- ✅ **ファクトチェック結果** ✨ **NEW in Phase 1.5!**
+  - **主張の検証**: 記事内の事実・統計を自動抽出して検証
+  - **正確性判定**: 正確/不正確/部分的に正確/未検証の4段階評価
+  - **信頼度評価**: 高/中/低の3段階で信頼性を表示
+  - **参照ソース**: 検証に使用した情報源のURL・関連度スコア
+  - **修正提案**: 不正確な情報がある場合の修正案
+  - **レビュー推奨**: 信頼度が低い場合のアラート表示
+- ✅ **X告知文**
   - **短文ポスト**: 140文字以内×5パターン（エンゲージメント予測付き）
   - **長文ポスト**: 300-500文字×2パターン（ストーリー型/データ型）
   - **スレッド形式**: 5-7ツイート連続投稿×2パターン
@@ -426,7 +448,9 @@ note-agent/
 │   │   ├── forms/
 │   │   │   └── InputGroup.tsx       # 入力フォーム
 │   │   ├── display/
-│   │   │   └── OutputDisplay.tsx    # 結果表示
+│   │   │   ├── OutputDisplay.tsx    # 結果表示
+│   │   │   ├── XPostDisplay.tsx     # X投稿表示
+│   │   │   └── FactCheckDisplay.tsx # ファクトチェック結果表示
 │   │   └── feedback/
 │   │       └── StepIndicator.tsx    # 進捗インジケーター
 │   │
@@ -436,14 +460,19 @@ note-agent/
 │   │   ├── research/
 │   │   │   ├── searchService.ts     # Google Search API
 │   │   │   ├── noteAnalyzer.ts      # noteプラットフォーム分析
-│   │   │   └── trendAnalyzer.ts     # SNSトレンド分析
+│   │   │   ├── trendAnalyzer.ts     # SNSトレンド分析
+│   │   │   └── tavilyService.ts     # Tavily ファクトチェックAPI
+│   │   ├── social/
+│   │   │   └── xPostGenerator.ts    # X投稿生成
 │   │   └── api/                     # 将来の外部API
 │   │
 │   ├── hooks/                       # カスタムReactフック
 │   ├── types/                       # TypeScript型定義
 │   │   ├── index.ts
 │   │   ├── article.types.ts
-│   │   └── api.types.ts
+│   │   ├── api.types.ts
+│   │   ├── social.types.ts          # X投稿関連の型
+│   │   └── factcheck.types.ts       # ファクトチェック関連の型
 │   │
 │   ├── config/                      # 設定
 │   │   ├── constants.ts
@@ -482,13 +511,15 @@ note-agent/
     ├─ noteプラットフォーム分析
     └─ SNSトレンド分析
     ↓
-記事生成ワークフロー（Step 1-6）
+記事生成ワークフロー（Step 1-7）
     ├─ Gemini 2.5 Flash/Pro（テキスト生成）
+    ├─ Tavily API（ファクトチェック） ✨ NEW!
     ├─ Imagen 3 / Unsplash（画像生成）
     └─ 各ステップで進捗状態更新
     ↓
 最終出力
     ├─ Markdown記事本文
+    ├─ ファクトチェック結果（信頼度評価 + 参照ソース） ✨ NEW!
     ├─ base64画像（アイキャッチ + 図解）
     ├─ X告知文（複数パターン + スレッド）
     └─ メタディスクリプション、リサーチデータ
@@ -547,6 +578,7 @@ UI表示・コピー機能
 
 ### Phase 1.5（早期追加予定）⚡
 
+- ✅ **ファクトチェック機能（Tavily API）** - 完了！
 - ⚪ 差し込み図解生成（Mermaid.js）
 - ⚪ スレッド形式展開
 - ⚪ 10,000文字対応

@@ -16,12 +16,13 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keywo
     const steps = isYouTubeURL(keyword) ? ALL_STEPS_WITH_YOUTUBE : ALL_STEPS;
     const currentIndex = steps.findIndex(step => step === currentStep);
     
-    // 7段階ワークフローのステップ詳細情報
+    // 8段階ワークフローのステップ詳細情報（ファクトチェック追加）
     const stepDetails = [
         { step: ProcessStep.RESEARCH, icon: '🔬', label: 'リサーチ' },
         { step: ProcessStep.ANALYZING, icon: '📊', label: 'SEO分析' },
         { step: ProcessStep.OUTLINING, icon: '📝', label: '構成作成' },
         { step: ProcessStep.WRITING, icon: '✍️', label: '記事執筆' },
+        { step: ProcessStep.FACT_CHECKING, icon: '✓', label: 'ファクトチェック' },
         { step: ProcessStep.GENERATING_IMAGE, icon: '🖼️', label: '画像生成' },
         { step: ProcessStep.GENERATING_X_POSTS, icon: '🐦', label: 'X告知文' },
     ];

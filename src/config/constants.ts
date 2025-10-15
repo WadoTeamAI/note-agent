@@ -16,22 +16,24 @@ export const AUDIENCE_OPTIONS: Audience[] = [
     Audience.EXPERT,
 ];
 
-// 7段階のワークフロー（Phase 1）
+// 8段階のワークフロー（Phase 1 + Phase 1.5 ファクトチェック）
 export const ALL_STEPS: ProcessStep[] = [
     ProcessStep.RESEARCH,
     ProcessStep.ANALYZING,
     ProcessStep.OUTLINING,
     ProcessStep.WRITING,
+    ProcessStep.FACT_CHECKING,
     ProcessStep.GENERATING_IMAGE,
     ProcessStep.GENERATING_X_POSTS,
 ];
 
-// YouTube URLの場合も同じ7段階ワークフロー
+// YouTube URLの場合も同じ8段階ワークフロー
 export const ALL_STEPS_WITH_YOUTUBE: ProcessStep[] = [
     ProcessStep.RESEARCH,
     ProcessStep.ANALYZING,
     ProcessStep.OUTLINING,
     ProcessStep.WRITING,
+    ProcessStep.FACT_CHECKING,
     ProcessStep.GENERATING_IMAGE,
     ProcessStep.GENERATING_X_POSTS,
 ];

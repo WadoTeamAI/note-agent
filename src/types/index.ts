@@ -9,6 +9,8 @@ export * from './article.types';
 export * from './api.types';
 // ソーシャルメディア関連の型を再エクスポート
 export * from './social.types';
+// ファクトチェック関連の型を再エクスポート
+export * from './factcheck.types';
 
 export enum Tone {
   POLITE = '丁寧で落ち着いた',
@@ -40,6 +42,7 @@ export enum ProcessStep {
   ANALYZING = 'SEO分析中...',
   OUTLINING = '記事構成案の作成中...',
   WRITING = '記事本文の執筆中...',
+  FACT_CHECKING = 'ファクトチェック中...',
   GENERATING_IMAGE = '画像生成中...',
   GENERATING_X_POSTS = 'X告知文生成中...',
   DONE = '完了',

@@ -10,9 +10,16 @@
   },
   "dependencies": {
     "@google/genai": "^1.23.0",
+    "@playwright/test": "^1.56.0",
     "@supabase/supabase-js": "^2.75.0",
+    "@types/fs-extra": "^11.0.4",
+    "fs-extra": "^11.3.2",
+    "playwright": "^1.56.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "y-protocols": "^1.0.6",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

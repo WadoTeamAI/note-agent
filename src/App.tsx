@@ -3,11 +3,10 @@ import { Tone, Audience, FormData, FinalOutput, ProcessStep } from './types';
 import { TONE_OPTIONS, AUDIENCE_OPTIONS, isYouTubeURL } from './config/constants';
 import * as geminiService from './services/ai/geminiService';
 import { generateXPosts } from './services/social/xPostGenerator';
-import { saveArticleHistory } from './services/database/historyService';
+import { extractClaims, performFactCheck } from './services/research/tavilyService';
 import InputGroup from './components/forms/InputGroup';
 import StepIndicator from './components/feedback/StepIndicator';
 import OutputDisplay from './components/display/OutputDisplay';
-import HistoryPanel from './components/history/HistoryPanel';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -55,12 +54,21 @@ const App: React.FC = () => {
             setCurrentStep(ProcessStep.WRITING);
             const markdownContent = await geminiService.writeArticle(outline, formData.targetLength, formData.tone, formData.audience);
             
-            // Step 4: 画像生成
+            // Step 4: ファクトチェック
+            setCurrentStep(ProcessStep.FACT_CHECKING);
+            const claims = await extractClaims(markdownContent, formData.keyword);
+            const factCheckSummary = await performFactCheck({
+                articleContent: markdownContent,
+                claims: claims,
+                keyword: formData.keyword,
+            });
+            
+            // Step 5: 画像生成
             setCurrentStep(ProcessStep.GENERATING_IMAGE);
             const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, formData.imageTheme);
             const imageUrl = await geminiService.generateImage(imagePrompt);
 
-            // Step 5: X告知文生成
+            // Step 6: X告知文生成
             setCurrentStep(ProcessStep.GENERATING_X_POSTS);
             const xPosts = await generateXPosts({
                 keyword: formData.keyword,
@@ -74,33 +82,34 @@ const App: React.FC = () => {
                 markdownContent, 
                 imageUrl, 
                 metaDescription: outline.metaDescription,
-                xPosts 
+                xPosts,
+                factCheckSummary
             };
             
             setOutput(finalOutput);
             setCurrentStep(ProcessStep.DONE);
 
-            // 履歴保存（Supabase利用可能な場合）
-            const startTime = Date.now();
-            const generationTimeMs = Date.now() - startTime;
+            // 履歴保存（Supabase利用可能な場合）- Phase 2で実装予定
+            // const startTime = Date.now();
+            // const generationTimeMs = Date.now() - startTime;
             
-            try {
-                await saveArticleHistory({
-                    inputKeyword: formData.keyword,
-                    inputTone: formData.tone,
-                    inputAudience: formData.audience,
-                    inputTargetLength: formData.targetLength,
-                    inputImageTheme: formData.imageTheme,
-                    finalOutput,
-                    analysisData: analysis,
-                    outlineData: outline,
-                    generationTimeMs,
-                    workflowSteps: ['ANALYZING', 'OUTLINING', 'WRITING', 'GENERATING_IMAGE', 'GENERATING_X_POSTS'],
-                });
-                console.log('記事履歴を保存しました');
-            } catch (historyError) {
-                console.warn('履歴保存に失敗:', historyError);
-            }
+            // try {
+            //     await saveArticleHistory({
+            //         inputKeyword: formData.keyword,
+            //         inputTone: formData.tone,
+            //         inputAudience: formData.audience,
+            //         inputTargetLength: formData.targetLength,
+            //         inputImageTheme: formData.imageTheme,
+            //         finalOutput,
+            //         analysisData: analysis,
+            //         outlineData: outline,
+            //         generationTimeMs,
+            //         workflowSteps: ['ANALYZING', 'OUTLINING', 'WRITING', 'FACT_CHECKING', 'GENERATING_IMAGE', 'GENERATING_X_POSTS'],
+            //     });
+            //     console.log('記事履歴を保存しました');
+            // } catch (historyError) {
+            //     console.warn('履歴保存に失敗:', historyError);
+            // }
 
         } catch (err) {
             console.error(err);
@@ -198,8 +207,8 @@ const App: React.FC = () => {
                 </div>
             </main>
 
-            {/* 履歴パネル */}
-            <HistoryPanel
+            {/* 履歴パネル - Phase 2で実装予定 */}
+            {/* <HistoryPanel
                 isOpen={showHistoryPanel}
                 onClose={() => setShowHistoryPanel(false)}
                 onSelectHistory={(history) => {
@@ -213,7 +222,7 @@ const App: React.FC = () => {
                         setCurrentStep(ProcessStep.DONE);
                     }
                 }}
-            />
+            /> */}
 
         </div>
     );

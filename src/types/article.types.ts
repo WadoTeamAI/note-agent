@@ -24,6 +24,7 @@ export interface FinalOutput {
   metaDescription: string;
   xPosts?: XPostGenerationResult;
   researchData?: ResearchData;
+  factCheckSummary?: import('./factcheck.types').FactCheckSummary;
 }
 
 export interface ResearchData {

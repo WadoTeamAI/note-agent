@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { FinalOutput } from '../../types';
 import XPostDisplay from './XPostDisplay';
+import FactCheckDisplay from './FactCheckDisplay';
+import NoteAutoPost from '../automation/NoteAutoPost';
 
 interface OutputDisplayProps {
     output: FinalOutput;
@@ -9,6 +11,8 @@ interface OutputDisplayProps {
 const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
     const [copiedContent, setCopiedContent] = useState(false);
     const [copiedMeta, setCopiedMeta] = useState(false);
+    const [postStatus, setPostStatus] = useState<string | null>(null);
+    const [postError, setPostError] = useState<string | null>(null);
 
     const handleCopyContent = () => {
         navigator.clipboard.writeText(output.markdownContent).then(() => {
@@ -22,6 +26,16 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
             setCopiedMeta(true);
             setTimeout(() => setCopiedMeta(false), 2000);
         });
+    };
+
+    const handlePostComplete = (postUrl: string) => {
+        setPostStatus(`投稿が完了しました！ URL: ${postUrl}`);
+        setPostError(null);
+    };
+
+    const handlePostError = (error: string) => {
+        setPostError(error);
+        setPostStatus(null);
     };
     
     const noteGuide = `
@@ -115,6 +129,19 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
                 </div>
             </div>
 
+            {/* ファクトチェック結果 */}
+            {output.factCheckSummary && (
+                <div className="backdrop-blur-sm bg-white/50 p-6 rounded-xl border border-white/30">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-6 flex items-center">
+                        <svg className="w-8 h-8 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        ファクトチェック結果
+                    </h3>
+                    <FactCheckDisplay summary={output.factCheckSummary} />
+                </div>
+            )}
+
             {/* 記事本文 */}
             <div className="backdrop-blur-sm bg-white/50 p-6 rounded-xl border border-white/30">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
@@ -151,6 +178,38 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
                         <code>{output.markdownContent}</code>
                     </pre>
                 </div>
+            </div>
+
+            {/* note自動投稿 */}
+            <div className="backdrop-blur-sm bg-white/50 p-6 rounded-xl border border-white/30">
+                <NoteAutoPost 
+                    output={output} 
+                    onPostComplete={handlePostComplete}
+                    onError={handlePostError}
+                />
+                
+                {/* 投稿ステータス表示 */}
+                {postStatus && (
+                    <div className="mt-4 p-4 backdrop-blur-sm bg-green-50/80 border border-green-200 rounded-xl">
+                        <div className="flex items-center">
+                            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <p className="text-green-700 font-medium">{postStatus}</p>
+                        </div>
+                    </div>
+                )}
+                
+                {postError && (
+                    <div className="mt-4 p-4 backdrop-blur-sm bg-red-50/80 border border-red-200 rounded-xl">
+                        <div className="flex items-center">
+                            <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-red-700 font-medium">{postError}</p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* X投稿 */}
