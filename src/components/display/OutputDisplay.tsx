@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FinalOutput } from '../types';
+import { FinalOutput } from '../../types';
 
 interface OutputDisplayProps {
     output: FinalOutput;

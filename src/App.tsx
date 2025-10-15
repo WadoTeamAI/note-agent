@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Tone, Audience, FormData, FinalOutput, ProcessStep } from './types';
-import { TONE_OPTIONS, AUDIENCE_OPTIONS, isYouTubeURL } from './constants';
-import * as geminiService from './services/geminiService';
-import InputGroup from './components/InputGroup';
-import StepIndicator from './components/StepIndicator';
-import OutputDisplay from './components/OutputDisplay';
+import { TONE_OPTIONS, AUDIENCE_OPTIONS, isYouTubeURL } from './config/constants';
+import * as geminiService from './services/ai/geminiService';
+import InputGroup from './components/forms/InputGroup';
+import StepIndicator from './components/feedback/StepIndicator';
+import OutputDisplay from './components/display/OutputDisplay';
 
 const App: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
@@ -35,30 +35,30 @@ const App: React.FC = () => {
         setCurrentStep(ProcessStep.IDLE);
 
         try {
-            let analysis: string;
+            // Step 0: 統合リサーチ
+            setCurrentStep(ProcessStep.RESEARCH);
+            // TODO: 統合リサーチ機能の実装
             
-            if (isYouTubeURL(formData.keyword)) {
-                setCurrentStep(ProcessStep.TRANSCRIBING);
-                const transcription = await geminiService.transcribeYouTubeVideo(formData.keyword);
-                
-                setCurrentStep(ProcessStep.ANALYZING);
-                analysis = await geminiService.analyzeSerpResults(`動画要約: ${transcription}`);
-            } else {
-                setCurrentStep(ProcessStep.ANALYZING);
-                analysis = await geminiService.analyzeSerpResults(formData.keyword);
-            }
+            // Step 1: SEO分析
+            setCurrentStep(ProcessStep.ANALYZING);
+            const analysis = await geminiService.analyzeSerpResults(formData.keyword);
 
+            // Step 2: 記事構成生成
             setCurrentStep(ProcessStep.OUTLINING);
             const outline = await geminiService.createArticleOutline(analysis, formData.audience, formData.tone, formData.keyword);
             
+            // Step 3: 本文生成
             setCurrentStep(ProcessStep.WRITING);
             const markdownContent = await geminiService.writeArticle(outline, formData.targetLength, formData.tone, formData.audience);
             
-            setCurrentStep(ProcessStep.GENERATING_IMAGE_PROMPT);
-            const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, formData.imageTheme);
-
+            // Step 4: 画像生成
             setCurrentStep(ProcessStep.GENERATING_IMAGE);
+            const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, formData.imageTheme);
             const imageUrl = await geminiService.generateImage(imagePrompt);
+
+            // Step 5: X告知文生成
+            setCurrentStep(ProcessStep.GENERATING_X_POSTS);
+            // TODO: X告知文生成機能の実装
 
             setOutput({ markdownContent, imageUrl, metaDescription: outline.metaDescription });
             setCurrentStep(ProcessStep.DONE);

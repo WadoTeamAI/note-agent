@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { ProcessStep } from '../types';
-import { ALL_STEPS, ALL_STEPS_WITH_YOUTUBE, isYouTubeURL } from '../constants';
+import { ProcessStep } from '../../types';
+import { ALL_STEPS, ALL_STEPS_WITH_YOUTUBE, isYouTubeURL } from '../../config/constants';
 
 interface StepIndicatorProps {
     currentStep: ProcessStep;
@@ -16,14 +16,14 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keywo
     const steps = isYouTubeURL(keyword) ? ALL_STEPS_WITH_YOUTUBE : ALL_STEPS;
     const currentIndex = steps.findIndex(step => step === currentStep);
     
-    // ステップの詳細情報
+    // 7段階ワークフローのステップ詳細情報
     const stepDetails = [
-        { step: ProcessStep.TRANSCRIBING, icon: '🎥', label: 'YouTube分析' },
+        { step: ProcessStep.RESEARCH, icon: '🔬', label: 'リサーチ' },
         { step: ProcessStep.ANALYZING, icon: '📊', label: 'SEO分析' },
         { step: ProcessStep.OUTLINING, icon: '📝', label: '構成作成' },
         { step: ProcessStep.WRITING, icon: '✍️', label: '記事執筆' },
-        { step: ProcessStep.GENERATING_IMAGE_PROMPT, icon: '🎨', label: '画像設計' },
         { step: ProcessStep.GENERATING_IMAGE, icon: '🖼️', label: '画像生成' },
+        { step: ProcessStep.GENERATING_X_POSTS, icon: '🐦', label: 'X告知文' },
     ];
 
     const progressPercentage = currentStep === ProcessStep.DONE ? 100 : Math.round(((currentIndex + 1) / steps.length) * 100);

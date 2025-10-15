@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { ArticleOutline, Audience, Tone } from '../types';
+import { ArticleOutline, Audience, Tone } from '../../types';
+import { analyzeSearchResults } from '../research/searchService';
 
 // 環境変数の確認とバリデーション
 function validateEnvironment() {
@@ -17,6 +18,15 @@ function validateEnvironment() {
             "有効なGemini APIキーを設定してください。\n" +
             "https://ai.google.dev/ でAPIキーを取得できます。"
         );
+    }
+    
+    // Google Search APIの設定確認（オプション）
+    const searchApiKey = process.env.GOOGLE_SEARCH_API_KEY || process.env.SEARCH_API_KEY;
+    const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID || process.env.SEARCH_ENGINE_ID;
+    
+    if (!searchApiKey || !searchEngineId) {
+        console.warn('Google Search API credentials not found. Search analysis will use mock data.');
+        console.warn('To enable real search analysis, set GOOGLE_SEARCH_API_KEY and GOOGLE_SEARCH_ENGINE_ID in .env.local');
     }
     
     return apiKey;
@@ -107,7 +117,38 @@ export async function transcribeYouTubeVideo(url: string): Promise<string> {
 }
 
 export async function analyzeSerpResults(keyword: string): Promise<string> {
-    const prompt = `キーワード: "${keyword}"
+    try {
+        // Google Search APIを使用してリアルタイム検索分析
+        const searchAnalysis = await analyzeSearchResults(keyword);
+        
+        // 検索結果をGemini AIで高度分析
+        const prompt = `検索分析データ:
+キーワード: "${keyword}"
+検索意図: ${searchAnalysis.searchIntent}
+共通見出し: ${searchAnalysis.commonHeadings.join(', ')}
+差別化ポイント: ${searchAnalysis.differentiationPoints.join(', ')}
+FAQ候補: ${searchAnalysis.faqSuggestions.join(', ')}
+関連キーワード: ${searchAnalysis.relatedKeywords.join(', ')}
+競合トップ結果: ${searchAnalysis.competitorAnalysis.topResults.map(r => r.title).join(', ')}
+
+上記の検索分析データを基に、以下を簡潔にまとめてください：
+1. 検索意図:
+2. 共通見出し構成（3-4個）:
+3. 差別化ポイント:
+4. FAQ（3個）:`;
+
+        return await withRetry(async () => {
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+            });
+            return response.text;
+        }, 'SEO分析');
+    } catch (error) {
+        // フォールバック: 基本的なプロンプトベース分析
+        console.warn('Search API analysis failed, using basic analysis:', error);
+        
+        const fallbackPrompt = `キーワード: "${keyword}"
 
 以下を簡潔に分析：
 1. 検索意図:
@@ -115,13 +156,14 @@ export async function analyzeSerpResults(keyword: string): Promise<string> {
 3. 差別化ポイント:
 4. FAQ（3個）:`;
 
-    return await withRetry(async () => {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
-        return response.text;
-    }, 'SEO分析');
+        return await withRetry(async () => {
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: fallbackPrompt,
+            });
+            return response.text;
+        }, 'SEO分析');
+    }
 }
 
 export async function createArticleOutline(analysis: string, audience: Audience, tone: Tone, keyword: string): Promise<ArticleOutline> {
