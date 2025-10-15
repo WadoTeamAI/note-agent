@@ -68,7 +68,7 @@ type SpeechRecognitionErrorCode =
   | 'bad-grammar' 
   | 'language-not-supported';
 
-declare var SpeechRecognition: {
+declare const SpeechRecognition: {
   prototype: SpeechRecognition;
   new(): SpeechRecognition;
 };

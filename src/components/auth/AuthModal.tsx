@@ -6,13 +6,17 @@ interface AuthModalProps {
     onClose: () => void;
 }
 
-type AuthMode = 'signin' | 'signup';
+type AuthMode = 'signin' | 'signup' | 'reset';
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-    const { signInWithGoogle, signInWithEmail, signUpWithEmail, isSupabaseEnabled } = useAuth();
+    const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword, resendEmailConfirmation, isSupabaseEnabled } = useAuth();
     const [mode, setMode] = useState<AuthMode>('signin');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [displayName, setDisplayName] = useState('');
+    const [acceptTerms, setAcceptTerms] = useState(false);
+    const [newsletter, setNewsletter] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
@@ -66,24 +70,66 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         setError(null);
         setMessage(null);
 
-        if (!email || !password) {
-            setError('メールアドレスとパスワードを入力してください');
-            setLoading(false);
-            return;
+        // バリデーション
+        if (mode === 'reset') {
+            if (!email) {
+                setError('メールアドレスを入力してください');
+                setLoading(false);
+                return;
+            }
+        } else {
+            if (!email || !password) {
+                setError('メールアドレスとパスワードを入力してください');
+                setLoading(false);
+                return;
+            }
+
+            if (mode === 'signup') {
+                if (password !== confirmPassword) {
+                    setError('パスワードが一致しません');
+                    setLoading(false);
+                    return;
+                }
+                if (password.length < 6) {
+                    setError('パスワードは6文字以上で入力してください');
+                    setLoading(false);
+                    return;
+                }
+                if (!acceptTerms) {
+                    setError('利用規約に同意してください');
+                    setLoading(false);
+                    return;
+                }
+            }
         }
 
         try {
-            const { error } = mode === 'signin' 
-                ? await signInWithEmail(email, password)
-                : await signUpWithEmail(email, password);
+            let result;
+            
+            if (mode === 'signin') {
+                result = await signInWithEmail(email, password);
+            } else if (mode === 'signup') {
+                result = await signUpWithEmail(email, password, {
+                    displayName: displayName || email.split('@')[0],
+                    newsletter,
+                    registrationDate: new Date().toISOString()
+                });
+            } else if (mode === 'reset') {
+                result = await resetPassword(email);
+            }
 
-            if (error) {
-                setError(error.message);
+            if (result?.error) {
+                // エラーメッセージを日本語化
+                const errorMessage = translateAuthError(result.error.message);
+                setError(errorMessage);
             } else {
                 if (mode === 'signup') {
-                    setMessage('登録確認メールを送信しました。メールを確認してください。');
+                    setMessage('登録確認メールを送信しました。メールを確認してアカウントを有効化してください。');
+                } else if (mode === 'reset') {
+                    setMessage('パスワードリセットのメールを送信しました。メールを確認してください。');
                 } else {
-                    onClose();
+                    setMessage('ログインしました！');
+                    setTimeout(() => onClose(), 1000);
                 }
             }
         } catch (err) {
@@ -93,10 +139,60 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         }
     };
 
-    const toggleMode = () => {
-        setMode(mode === 'signin' ? 'signup' : 'signin');
+    const handleResendConfirmation = async () => {
+        if (!email) {
+            setError('メールアドレスを入力してください');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { error } = await resendEmailConfirmation(email);
+            if (error) {
+                setError(translateAuthError(error.message));
+            } else {
+                setMessage('確認メールを再送信しました。');
+            }
+        } catch (err) {
+            setError('確認メール送信でエラーが発生しました');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const translateAuthError = (errorMessage: string): string => {
+        if (errorMessage.includes('Email not confirmed')) {
+            return 'メールアドレスが確認されていません。確認メールをチェックしてください。';
+        }
+        if (errorMessage.includes('Invalid login credentials')) {
+            return 'メールアドレスまたはパスワードが正しくありません。';
+        }
+        if (errorMessage.includes('User already registered')) {
+            return 'このメールアドレスは既に登録されています。';
+        }
+        if (errorMessage.includes('Password should be')) {
+            return 'パスワードは6文字以上で入力してください。';
+        }
+        if (errorMessage.includes('Invalid email')) {
+            return '有効なメールアドレスを入力してください。';
+        }
+        return errorMessage;
+    };
+
+    const resetForm = () => {
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setDisplayName('');
+        setAcceptTerms(false);
+        setNewsletter(false);
         setError(null);
         setMessage(null);
+    };
+
+    const switchMode = (newMode: AuthMode) => {
+        setMode(newMode);
+        resetForm();
     };
 
     return (
@@ -105,7 +201,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-white/20">
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        {mode === 'signin' ? '🔑 ログイン' : '📝 新規登録'}
+                        {mode === 'signin' ? '🔑 ログイン' : mode === 'signup' ? '📝 新規登録' : '🔄 パスワードリセット'}
                     </h2>
                     <button
                         onClick={onClose}
@@ -158,20 +254,83 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                パスワード
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="パスワード"
-                                required
-                                minLength={6}
-                            />
-                        </div>
+                        {mode === 'signup' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    表示名（オプション）
+                                </label>
+                                <input
+                                    type="text"
+                                    value={displayName}
+                                    onChange={(e) => setDisplayName(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="表示名"
+                                />
+                            </div>
+                        )}
+
+                        {mode !== 'reset' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    パスワード
+                                </label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="パスワード（6文字以上）"
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
+                        )}
+
+                        {mode === 'signup' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    パスワード確認
+                                </label>
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="パスワードを再入力"
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
+                        )}
+
+                        {mode === 'signup' && (
+                            <div className="space-y-3">
+                                <label className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={acceptTerms}
+                                        onChange={(e) => setAcceptTerms(e.target.checked)}
+                                        className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        required
+                                    />
+                                    <span className="text-sm text-gray-700">
+                                        <a href="#" className="text-indigo-600 hover:text-indigo-800">利用規約</a>と
+                                        <a href="#" className="text-indigo-600 hover:text-indigo-800">プライバシーポリシー</a>に同意します
+                                    </span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={newsletter}
+                                        onChange={(e) => setNewsletter(e.target.checked)}
+                                        className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">
+                                        ニュースレターとアップデート情報を受け取る
+                                    </span>
+                                </label>
+                            </div>
+                        )}
 
                         {error && (
                             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -190,20 +349,59 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                             disabled={loading}
                             className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold py-3 px-4 rounded-lg hover:from-indigo-600 hover:to-purple-600 focus:outline-none focus:ring-4 focus:ring-purple-200 disabled:opacity-50 transition-all"
                         >
-                            {loading ? '処理中...' : mode === 'signin' ? 'ログイン' : '新規登録'}
+                            {loading ? '処理中...' : 
+                             mode === 'signin' ? 'ログイン' : 
+                             mode === 'signup' ? '新規登録' : 
+                             'パスワードリセット'}
                         </button>
+
+                        {mode === 'signin' && (
+                            <button
+                                type="button"
+                                onClick={() => switchMode('reset')}
+                                className="w-full mt-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                            >
+                                パスワードを忘れた方はこちら
+                            </button>
+                        )}
+
+                        {message && message.includes('確認されていません') && (
+                            <button
+                                type="button"
+                                onClick={handleResendConfirmation}
+                                disabled={loading}
+                                className="w-full mt-2 text-green-600 hover:text-green-800 text-sm font-medium disabled:opacity-50"
+                            >
+                                確認メールを再送信
+                            </button>
+                        )}
                     </form>
 
-                    <div className="mt-4 text-center">
-                        <button
-                            onClick={toggleMode}
-                            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                        >
-                            {mode === 'signin' 
-                                ? '新規登録はこちら' 
-                                : 'すでにアカウントをお持ちですか？'
-                            }
-                        </button>
+                    <div className="mt-4 text-center space-y-2">
+                        {mode === 'signin' && (
+                            <button
+                                onClick={() => switchMode('signup')}
+                                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium block"
+                            >
+                                新規登録はこちら
+                            </button>
+                        )}
+                        {mode === 'signup' && (
+                            <button
+                                onClick={() => switchMode('signin')}
+                                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium block"
+                            >
+                                すでにアカウントをお持ちですか？
+                            </button>
+                        )}
+                        {mode === 'reset' && (
+                            <button
+                                onClick={() => switchMode('signin')}
+                                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium block"
+                            >
+                                ログインページに戻る
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

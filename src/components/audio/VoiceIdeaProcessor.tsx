@@ -237,7 +237,7 @@ export const VoiceIdeaProcessor: React.FC<VoiceIdeaProcessorProps> = ({
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-gray-700 mb-2">元の音声入力:</h4>
                 <p className="text-sm text-gray-600 italic">
-                  "{processedResult.originalTranscript}"
+                  &ldquo;{processedResult.originalTranscript}&rdquo;
                 </p>
               </div>
 

@@ -8,10 +8,16 @@ interface AuthContextType {
     loading: boolean;
     signInWithGoogle: () => Promise<{ error: AuthError | null }>;
     signInWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-    signUpWithEmail: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+    signUpWithEmail: (email: string, password: string, metadata?: any) => Promise<{ error: AuthError | null }>;
     signOut: () => Promise<{ error: AuthError | null }>;
+    resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+    updatePassword: (password: string) => Promise<{ error: AuthError | null }>;
+    updateUserProfile: (metadata: any) => Promise<{ error: AuthError | null }>;
+    resendEmailConfirmation: (email: string) => Promise<{ error: AuthError | null }>;
+    refreshSession: () => Promise<{ error: AuthError | null }>;
     isAuthenticated: boolean;
     isSupabaseEnabled: boolean;
+    isEmailConfirmed: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -104,7 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     };
 
-    const signUpWithEmail = async (email: string, password: string) => {
+    const signUpWithEmail = async (email: string, password: string, metadata: any = {}) => {
         if (!isSupabaseEnabled) {
             return { error: new Error('Supabase is not configured') as AuthError };
         }
@@ -114,12 +120,105 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 email,
                 password,
                 options: {
-                    emailRedirectTo: window.location.origin
+                    emailRedirectTo: window.location.origin,
+                    data: {
+                        display_name: metadata.displayName || email.split('@')[0],
+                        created_at: new Date().toISOString(),
+                        preferences: {
+                            newsletter: metadata.newsletter || false,
+                            notifications: metadata.notifications || true
+                        },
+                        ...metadata
+                    }
                 }
             });
             return { error };
         } catch (error) {
             console.error('Email sign up error:', error);
+            return { error: error as AuthError };
+        }
+    };
+
+    const resetPassword = async (email: string) => {
+        if (!isSupabaseEnabled) {
+            return { error: new Error('Supabase is not configured') as AuthError };
+        }
+
+        try {
+            const { error } = await supabase!.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`
+            });
+            return { error };
+        } catch (error) {
+            console.error('Password reset error:', error);
+            return { error: error as AuthError };
+        }
+    };
+
+    const updatePassword = async (password: string) => {
+        if (!isSupabaseEnabled) {
+            return { error: new Error('Supabase is not configured') as AuthError };
+        }
+
+        try {
+            const { error } = await supabase!.auth.updateUser({ password });
+            return { error };
+        } catch (error) {
+            console.error('Password update error:', error);
+            return { error: error as AuthError };
+        }
+    };
+
+    const updateUserProfile = async (metadata: any) => {
+        if (!isSupabaseEnabled) {
+            return { error: new Error('Supabase is not configured') as AuthError };
+        }
+
+        try {
+            const { error } = await supabase!.auth.updateUser({
+                data: {
+                    ...user?.user_metadata,
+                    ...metadata,
+                    updated_at: new Date().toISOString()
+                }
+            });
+            return { error };
+        } catch (error) {
+            console.error('Profile update error:', error);
+            return { error: error as AuthError };
+        }
+    };
+
+    const resendEmailConfirmation = async (email: string) => {
+        if (!isSupabaseEnabled) {
+            return { error: new Error('Supabase is not configured') as AuthError };
+        }
+
+        try {
+            const { error } = await supabase!.auth.resend({
+                type: 'signup',
+                email,
+                options: {
+                    emailRedirectTo: window.location.origin
+                }
+            });
+            return { error };
+        } catch (error) {
+            console.error('Email confirmation resend error:', error);
+            return { error: error as AuthError };
+        }
+    };
+
+    const refreshSession = async () => {
+        if (!isSupabaseEnabled) {
+            return { error: new Error('Supabase is not configured') as AuthError };
+        }
+
+        try {
+            const { error } = await supabase!.auth.refreshSession();
+            return { error };
+        } catch (error) {
+            console.error('Session refresh error:', error);
             return { error: error as AuthError };
         }
     };
@@ -146,8 +245,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         signInWithEmail,
         signUpWithEmail,
         signOut,
+        resetPassword,
+        updatePassword,
+        updateUserProfile,
+        resendEmailConfirmation,
+        refreshSession,
         isAuthenticated: !!user,
-        isSupabaseEnabled
+        isSupabaseEnabled,
+        isEmailConfirmed: !!user?.email_confirmed_at
     };
 
     return (
