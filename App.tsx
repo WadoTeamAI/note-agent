@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tone, Audience, FormData, FinalOutput, ProcessStep } from './types';
-import { TONE_OPTIONS, AUDIENCE_OPTIONS } from './constants';
+import { TONE_OPTIONS, AUDIENCE_OPTIONS, isYouTubeURL } from './constants';
 import * as geminiService from './services/geminiService';
 import InputGroup from './components/InputGroup';
 import StepIndicator from './components/StepIndicator';
@@ -12,6 +12,7 @@ const App: React.FC = () => {
         tone: Tone.POLITE,
         audience: Audience.BEGINNER,
         targetLength: 2500,
+        imageTheme: 'PC作業をする人',
     });
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState<ProcessStep>(ProcessStep.IDLE);
@@ -34,8 +35,18 @@ const App: React.FC = () => {
         setCurrentStep(ProcessStep.IDLE);
 
         try {
-            setCurrentStep(ProcessStep.ANALYZING);
-            const analysis = await geminiService.analyzeSerpResults(formData.keyword);
+            let analysis: string;
+            
+            if (isYouTubeURL(formData.keyword)) {
+                setCurrentStep(ProcessStep.TRANSCRIBING);
+                const transcription = await geminiService.transcribeYouTubeVideo(formData.keyword);
+                
+                setCurrentStep(ProcessStep.ANALYZING);
+                analysis = await geminiService.analyzeSerpResults(`動画要約: ${transcription}`);
+            } else {
+                setCurrentStep(ProcessStep.ANALYZING);
+                analysis = await geminiService.analyzeSerpResults(formData.keyword);
+            }
 
             setCurrentStep(ProcessStep.OUTLINING);
             const outline = await geminiService.createArticleOutline(analysis, formData.audience, formData.tone, formData.keyword);
@@ -44,7 +55,7 @@ const App: React.FC = () => {
             const markdownContent = await geminiService.writeArticle(outline, formData.targetLength, formData.tone, formData.audience);
             
             setCurrentStep(ProcessStep.GENERATING_IMAGE_PROMPT);
-            const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent);
+            const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, formData.imageTheme);
 
             setCurrentStep(ProcessStep.GENERATING_IMAGE);
             const imageUrl = await geminiService.generateImage(imagePrompt);
@@ -71,18 +82,19 @@ const App: React.FC = () => {
                 </div>
             </header>
 
-            <main className="container mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <main className="container mx-auto px-4 md:px-6 py-6 md:py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
                     {/* Left Column: Form */}
                     <div className="lg:col-span-4">
-                        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+                        <form onSubmit={handleSubmit} className="bg-white p-4 md:p-6 rounded-lg shadow-md">
                             <h2 className="text-xl font-semibold mb-6 border-b pb-3">記事設定</h2>
-                            <InputGroup label="記事のテーマ・キーワード" id="keyword" value={formData.keyword} onChange={handleChange} placeholder="例: 副業 始め方" required />
+                            <InputGroup label="記事のテーマ・キーワード or YouTube URL" id="keyword" value={formData.keyword} onChange={handleChange} placeholder="例: 副業 始め方 または https://www.youtube.com/watch?v=..." required />
                             <InputGroup label="文体 (トーン)" id="tone" as="select" options={TONE_OPTIONS} value={formData.tone} onChange={handleChange} />
                             <InputGroup label="想定する読者層" id="audience" as="select" options={AUDIENCE_OPTIONS} value={formData.audience} onChange={handleChange} />
                             <InputGroup label="目安文字数" id="targetLength" type="number" value={formData.targetLength} onChange={handleChange} />
+                            <InputGroup label="画像テーマ" id="imageTheme" value={formData.imageTheme} onChange={handleChange} placeholder="例: PC作業をする人、カフェで読書する女性" />
 
-                            <button type="submit" disabled={isLoading} className="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-300">
+                            <button type="submit" disabled={isLoading} className="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-300 text-sm md:text-base">
                                 {isLoading ? '生成中...' : '記事を生成する'}
                             </button>
                         </form>
@@ -91,15 +103,15 @@ const App: React.FC = () => {
                     {/* Right Column: Status & Output */}
                     <div className="lg:col-span-8">
                         {isLoading || error ? (
-                            <StepIndicator currentStep={currentStep} error={error} />
+                            <StepIndicator currentStep={currentStep} error={error} keyword={formData.keyword} />
                         ) : null}
 
                         {output && !isLoading ? (
                             <OutputDisplay output={output} />
                         ) : !isLoading && !error && currentStep === ProcessStep.IDLE ? (
-                             <div className="bg-white p-10 rounded-lg shadow-md text-center">
-                                <h2 className="text-2xl font-semibold text-gray-700">準備完了</h2>
-                                <p className="mt-2 text-gray-500">左側のフォームに必要な情報を入力し、「記事を生成する」ボタンを押してください。</p>
+                             <div className="bg-white p-6 md:p-10 rounded-lg shadow-md text-center">
+                                <h2 className="text-xl md:text-2xl font-semibold text-gray-700">準備完了</h2>
+                                <p className="mt-2 text-gray-500 text-sm md:text-base">左側のフォームに必要な情報を入力し、「記事を生成する」ボタンを押してください。</p>
                             </div>
                         ) : null}
                     </div>

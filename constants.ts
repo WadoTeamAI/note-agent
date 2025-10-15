@@ -19,3 +19,16 @@ export const ALL_STEPS: ProcessStep[] = [
     ProcessStep.WRITING,
     ProcessStep.GENERATING_IMAGE,
 ];
+
+export const ALL_STEPS_WITH_YOUTUBE: ProcessStep[] = [
+    ProcessStep.TRANSCRIBING,
+    ProcessStep.ANALYZING,
+    ProcessStep.OUTLINING,
+    ProcessStep.WRITING,
+    ProcessStep.GENERATING_IMAGE,
+];
+
+export function isYouTubeURL(url: string): boolean {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[\w\-]+/;
+    return youtubeRegex.test(url.trim());
+}

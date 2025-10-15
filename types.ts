@@ -15,6 +15,7 @@ export interface FormData {
   tone: Tone;
   audience: Audience;
   targetLength: number;
+  imageTheme: string;
 }
 
 export interface ArticleOutline {
@@ -39,6 +40,7 @@ export interface FinalOutput {
 
 export enum ProcessStep {
     IDLE = 'IDLE',
+    TRANSCRIBING = 'YouTube動画の文字起こし中...',
     ANALYZING = 'Google検索結果の分析中...',
     OUTLINING = '記事構成案の作成中...',
     WRITING = '記事本文の執筆中...',
