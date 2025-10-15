@@ -6,7 +6,12 @@ import { Tone, Audience, FormData, FinalOutput, ProcessStep, ArticleCategory } f
 import { 
     TONE_OPTIONS, 
     AUDIENCE_OPTIONS, 
-    CATEGORY_OPTIONS
+    CATEGORY_OPTIONS, 
+    IMAGE_STYLE_OPTIONS, 
+    COLOR_TONE_OPTIONS, 
+    ASPECT_RATIO_OPTIONS,
+    SEARCH_INTENT_OPTIONS,
+    PLATFORM_OPTIONS
 } from '@/config/constants';
 import * as geminiService from '@/services/ai/geminiService';
 import { generateXPosts } from '@/services/social/xPostGenerator';
@@ -15,6 +20,15 @@ import InputGroup from '@/components/forms/InputGroup';
 import { CollapsibleSection } from '@/components/forms/CollapsibleSection';
 import StepIndicator from '@/components/feedback/StepIndicator';
 import OutputDisplay from '@/components/display/OutputDisplay';
+import BatchGenerator from '@/components/batch/BatchGenerator';
+import TrendingTopicsPanel from '@/components/news/TrendingTopicsPanel';
+import { ArticleGenerationSuggestion } from '@/types/news.types';
+import ApprovalWorkflowPanel from '@/components/approval/ApprovalWorkflowPanel';
+import { ApprovalWorkflowManager } from '@/services/approval/approvalWorkflow';
+import { ApprovalWorkflow, StepType, OutlineApprovalData, ContentApprovalData, ImageApprovalData, XPostApprovalData } from '@/types/approval.types';
+import { ABTestPanel } from '@/components/abtest/ABTestPanel';
+import { ABTestService } from '@/services/abtest/abtestService';
+import { VariationType } from '@/types/abtest.types';
 
 // Dynamic imports for client-side only components
 const VoiceIdeaProcessor = dynamic(
@@ -80,8 +94,20 @@ export default function HomePage() {
     const [currentStep, setCurrentStep] = useState<ProcessStep>(ProcessStep.IDLE);
     const [output, setOutput] = useState<FinalOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
+    const [showBatchGenerator, setShowBatchGenerator] = useState<boolean>(false);
+    const [showTrendingPanel, setShowTrendingPanel] = useState<boolean>(false);
     const [showVoiceProcessor, setShowVoiceProcessor] = useState<boolean>(false);
+    const [showApprovalWorkflow, setShowApprovalWorkflow] = useState<boolean>(false);
+    const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(null);
+    const [showABTestPanel, setShowABTestPanel] = useState<boolean>(false);
     const [currentGeneratedImage, setCurrentGeneratedImage] = useState<string | null>(null);
+    
+    // 承認ワークフローマネージャーの初期化
+    const workflowManager = useRef(new ApprovalWorkflowManager());
+    
+    // A/Bテストサービスの初期化
+    const abTestService = useRef(new ABTestService());
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -127,6 +153,17 @@ export default function HomePage() {
         setCurrentGeneratedImage(null);
 
         try {
+            // 承認ワークフローを作成
+            const workflowId = await workflowManager.current.createWorkflow({
+                keyword: formData.keyword,
+                tone: formData.tone,
+                audience: formData.audience,
+                targetLength: formData.targetLength,
+                imageTheme: formData.imageTheme
+            });
+
+            setCurrentWorkflowId(workflowId);
+
             // Step 1: SEO分析
             setCurrentStep(ProcessStep.ANALYZING);
             const analysis = await geminiService.analyzeSerpResults(formData.keyword);
@@ -134,10 +171,30 @@ export default function HomePage() {
             // Step 2: 記事構成生成
             setCurrentStep(ProcessStep.OUTLINING);
             const outline = await geminiService.createArticleOutline(analysis, formData.audience, formData.tone, formData.keyword);
+            
+            // 構成承認データを設定
+            const outlineData: OutlineApprovalData = {
+                originalOutline: {
+                    title: outline.title,
+                    metaDescription: outline.metaDescription,
+                    sections: outline.sections.map(section => ({
+                        heading: section.heading,
+                        subheadings: section.content ? [section.content] : []
+                    }))
+                }
+            };
+            await workflowManager.current.updateStepContent(workflowId, StepType.OUTLINE_REVIEW, outlineData);
 
             // Step 3: 本文生成
             setCurrentStep(ProcessStep.WRITING);
             const markdownContent = await geminiService.writeArticle(outline, formData.targetLength, formData.tone, formData.audience);
+            
+            // 本文承認データを設定
+            const contentData: ContentApprovalData = {
+                originalContent: markdownContent,
+                wordCount: markdownContent.length
+            };
+            await workflowManager.current.updateStepContent(workflowId, StepType.CONTENT_REVIEW, contentData);
 
             // Step 4: ファクトチェック
             setCurrentStep(ProcessStep.FACT_CHECKING);
@@ -154,6 +211,13 @@ export default function HomePage() {
             const imageUrl = await geminiService.generateImage(imagePrompt);
             setCurrentGeneratedImage(imageUrl);
 
+            // 画像承認データを設定
+            const imageData: ImageApprovalData = {
+                originalImageUrl: imageUrl,
+                originalPrompt: imagePrompt
+            };
+            await workflowManager.current.updateStepContent(workflowId, StepType.IMAGE_REVIEW, imageData);
+
             // Step 6: X告知文生成
             setCurrentStep(ProcessStep.GENERATING_X_POSTS);
             const xPosts = await generateXPosts({
@@ -164,6 +228,16 @@ export default function HomePage() {
                 targetAudiences: ['初心者', '中級者', 'ビジネスパーソン', '主婦・主夫', '学生'],
             });
 
+            // X投稿承認データを設定
+            const allPosts = [
+                ...xPosts.shortPosts.map(post => ({ type: post.type, content: post.text, audience: post.target })),
+                ...xPosts.longPosts.map(post => ({ type: post.type, content: post.text, audience: post.target }))
+            ];
+            const xPostData: XPostApprovalData = {
+                originalPosts: allPosts
+            };
+            await workflowManager.current.updateStepContent(workflowId, StepType.XPOST_REVIEW, xPostData);
+
             const finalOutput = { 
                 markdownContent, 
                 imageUrl, 
@@ -172,8 +246,14 @@ export default function HomePage() {
                 factCheckSummary
             };
             
+            // 最終出力をワークフローに設定
+            await workflowManager.current.setFinalOutput(workflowId, finalOutput);
+            
             setOutput(finalOutput);
             setCurrentStep(ProcessStep.DONE);
+
+            // 承認ワークフローパネルを表示
+            setShowApprovalWorkflow(true);
 
         } catch (err) {
             console.error(err);
@@ -183,6 +263,23 @@ export default function HomePage() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSuggestionSelect = (suggestion: ArticleGenerationSuggestion) => {
+        // 提案された記事の設定をフォームに反映
+        setFormData(prev => ({
+            ...prev,
+            keyword: suggestion.keyword,
+            // 読者層を推定してマッピング
+            audience: suggestion.targetAudience.includes('初心者') ? Audience.BEGINNER : 
+                     suggestion.targetAudience.includes('中級者') ? Audience.INTERMEDIATE : 
+                     Audience.EXPERT
+        }));
+        
+        setShowTrendingPanel(false);
+        
+        // 自動的に記事生成を開始（オプション）
+        // generateArticle(newFormData);
     };
 
     const handleVoiceIdeaProcessed = (voiceFormData: Partial<FormData>) => {
@@ -196,6 +293,55 @@ export default function HomePage() {
         
         // 音声アイデアが処理されたことを表示
         console.log('音声アイデアが適用されました:', voiceFormData);
+    };
+
+    const handleApprovalWorkflowComplete = (workflow: ApprovalWorkflow) => {
+        // 承認完了時の処理
+        console.log('承認ワークフローが完了しました:', workflow);
+        
+        // 最終出力を設定
+        if (workflow.finalOutput) {
+            setOutput(workflow.finalOutput);
+        }
+        
+        // パネルを閉じる
+        setShowApprovalWorkflow(false);
+        setCurrentWorkflowId(null);
+        
+        // 成功メッセージを表示
+        alert('記事の承認が完了しました！公開準備に進んでください。');
+    };
+
+    const handleABTestStart = async (versionCount: number, variationTypes: VariationType[]) => {
+        console.log('A/Bテスト開始:', { versionCount, variationTypes });
+        
+        try {
+            setIsLoading(true);
+            setShowABTestPanel(false);
+            setCurrentStep(ProcessStep.ANALYZING);
+            
+            // A/Bテスト実行
+            const result = await abTestService.current.runABTest({
+                id: `abtest-${Date.now()}`,
+                baseFormData: formData,
+                versionCount,
+                variationTypes,
+                createdAt: new Date().toISOString()
+            });
+            
+            console.log('A/Bテスト結果:', result);
+            
+            // 結果を表示（今はコンソールログのみ）
+            // TODO: A/Bテスト結果表示コンポーネントを実装
+            setCurrentStep(ProcessStep.IDLE);
+            
+        } catch (error) {
+            console.error('A/Bテストエラー:', error);
+            setError('A/Bテストの実行に失敗しました。');
+            setCurrentStep(ProcessStep.IDLE);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -219,6 +365,36 @@ export default function HomePage() {
                                 className="btn btn-secondary"
                             >
                                 🎙️ 音声入力
+                            </button>
+                            <button
+                                onClick={() => setShowABTestPanel(true)}
+                                className="btn btn-primary"
+                            >
+                                🧪 A/Bテスト
+                            </button>
+                            <button
+                                onClick={() => setShowTrendingPanel(true)}
+                                className="btn btn-success"
+                            >
+                                📈 トレンド
+                            </button>
+                            <button
+                                onClick={() => setShowBatchGenerator(true)}
+                                className="btn btn-secondary"
+                            >
+                                📚 バッチ生成
+                            </button>
+                            <button
+                                onClick={() => setShowHistoryPanel(true)}
+                                className="btn btn-primary"
+                            >
+                                📋 履歴
+                            </button>
+                            <button
+                                onClick={() => setShowApprovalWorkflow(true)}
+                                className="btn btn-warning"
+                            >
+                                👥 承認フロー
                             </button>
                         </div>
                     </div>
@@ -343,11 +519,39 @@ export default function HomePage() {
             </main>
 
             {/* モーダル群 */}
+            {showTrendingPanel && (
+                <TrendingTopicsPanel 
+                    onClose={() => setShowTrendingPanel(false)}
+                    onSelectSuggestion={handleSuggestionSelect}
+                />
+            )}
+
+            {showBatchGenerator && (
+                <BatchGenerator onClose={() => setShowBatchGenerator(false)} />
+            )}
+
             <VoiceIdeaProcessor 
                 isVisible={showVoiceProcessor}
                 onClose={() => setShowVoiceProcessor(false)}
                 onIdeaProcessed={handleVoiceIdeaProcessed}
             />
+
+            {showABTestPanel && (
+                <ABTestPanel 
+                    formData={formData}
+                    onClose={() => setShowABTestPanel(false)}
+                    onStart={handleABTestStart}
+                />
+            )}
+
+            {showApprovalWorkflow && currentWorkflowId && (
+                <ApprovalWorkflowPanel
+                    workflowId={currentWorkflowId}
+                    workflowManager={workflowManager.current}
+                    onClose={() => setShowApprovalWorkflow(false)}
+                    onComplete={handleApprovalWorkflowComplete}
+                />
+            )}
         </div>
     );
 }
