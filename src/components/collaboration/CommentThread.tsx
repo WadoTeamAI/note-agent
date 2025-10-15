@@ -164,7 +164,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
           {comment.position.text && (
             <div className="mt-2 p-2 bg-gray-50 border-l-4 border-blue-500 rounded">
               <p className="text-sm text-gray-600 italic">
-                "{comment.position.text}"
+                &quot;{comment.position.text}&quot;
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 行 {comment.position.line}, 列 {comment.position.column}

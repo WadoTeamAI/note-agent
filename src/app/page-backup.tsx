@@ -322,11 +322,13 @@ export default function HomePage() {
             
             // A/Bテスト実行
             const result = await abTestService.current.runABTest({
-                id: `abtest-${Date.now()}`,
-                baseFormData: formData,
+                keyword: formData.keyword,
+                tone: formData.tone,
+                audience: formData.audience,
+                targetLength: formData.targetLength,
+                imageTheme: formData.imageTheme,
                 versionCount,
-                variationTypes,
-                createdAt: new Date().toISOString()
+                variationTypes
             });
             
             console.log('A/Bテスト結果:', result);

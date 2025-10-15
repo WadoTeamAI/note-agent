@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Tone, Audience, FormData, FinalOutput, ProcessStep, ArticleCategory } from './types';
-import { TONE_OPTIONS, AUDIENCE_OPTIONS, CATEGORY_OPTIONS, isYouTubeURL } from './config/constants';
+import { TONE_OPTIONS, AUDIENCE_OPTIONS, CATEGORY_OPTIONS } from './config/constants';
 import * as geminiService from './services/ai/geminiService';
 import { generateXPosts } from './services/social/xPostGenerator';
 import { extractClaims, performFactCheck } from './services/research/tavilyService';
@@ -21,7 +21,6 @@ import { abtestService } from './services/abtest/abtestService';
 import { ABTestResult, ABTestVersion, VariationType } from './types/abtest.types';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
 import { AnalyticsService } from './services/analytics/analyticsService';
-import { InteractionType } from './types/analytics.types';
 import XPostManager from './components/social/XPostManager';
 import { xPostExporter, PreparedPost } from './services/social/xPostExporter';
 
@@ -73,7 +72,6 @@ const App: React.FC = () => {
     const [currentStep, setCurrentStep] = useState<ProcessStep>(ProcessStep.IDLE);
     const [output, setOutput] = useState<FinalOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [showHistoryPanel, setShowHistoryPanel] = useState<boolean>(false);
     const [showBatchGenerator, setShowBatchGenerator] = useState<boolean>(false);
     const [showTrendingPanel, setShowTrendingPanel] = useState<boolean>(false);
     const [showVoiceProcessor, setShowVoiceProcessor] = useState<boolean>(false);

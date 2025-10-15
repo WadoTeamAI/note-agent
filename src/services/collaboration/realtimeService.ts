@@ -20,7 +20,7 @@ export class RealtimeCollaborationService {
   private ytext: Y.Text;
   private currentUser: CollaboratorUser | null = null;
   private collaborators: Map<string, CollaboratorUser> = new Map();
-  private eventHandlers: Map<string, Function[]> = new Map();
+  private eventHandlers: Map<string, ((...args: any[]) => void)[]> = new Map();
 
   constructor() {
     this.ydoc = new Y.Doc();
@@ -147,7 +147,7 @@ export class RealtimeCollaborationService {
   /**
    * イベントリスナーを追加
    */
-  addEventListener(event: string, handler: Function): void {
+  addEventListener(event: string, handler: (...args: any[]) => void): void {
     if (!this.eventHandlers.has(event)) {
       this.eventHandlers.set(event, []);
     }
@@ -157,7 +157,7 @@ export class RealtimeCollaborationService {
   /**
    * イベントリスナーを削除
    */
-  removeEventListener(event: string, handler: Function): void {
+  removeEventListener(event: string, handler: (...args: any[]) => void): void {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
       const index = handlers.indexOf(handler);
