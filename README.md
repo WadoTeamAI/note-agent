@@ -177,10 +177,10 @@ Phase 1.5: Next.js 14への移行検討（App Router、パフォーマンス最�
 ## 🛠️ 技術スタック
 
 ### フロントエンド
-- **React** + **TypeScript**
-- **Vite** （高速ビルドツール）
-- **react-markdown** + **remark-gfm** （Markdownレンダリング） ✨ **NEW**
-- 将来: **Next.js 14** (App Router) への移行検討（Phase 1.5）
+- **React 19** + **TypeScript 5.8**
+- **Next.js 15.1.0** (App Router) - パフォーマンス最適化済み ✅
+- **react-markdown** + **remark-gfm** + **rehype-highlight** （Markdownレンダリング）
+- **Tailwind CSS 3.4** + **PostCSS** （スタイリング）
 
 ### AI / ML
 - **Google Gemini 2.5 Flash** （高速・コスト効率）
@@ -199,11 +199,15 @@ Phase 1.5: Next.js 14への移行検討（App Router、パフォーマンス最�
 - **LangChain** （AIエージェント構築）
 - **Mermaid.js** （図解自動生成）
 
-### バックエンド・データベース（Phase 2〜）
-- **Supabase**
-  - PostgreSQL + Pgvector（ベクトル検索）
-  - Realtime（リアルタイム通信）
-  - Auth（ユーザー認証）
+### バックエンド・データベース
+- **Supabase** ✅
+  - Auth（ユーザー認証）- 実装完了！
+  - PostgreSQL（記事履歴管理）
+  - Pgvector（ベクトル検索）- Phase 2
+  - Realtime（リアルタイム通信）- Phase 2.5
+
+### ブラウザ自動化
+- **Playwright 1.56** ✅ （note自動投稿実装完了！）
 
 ### デプロイ
 - ローカル開発 → **Vercel** / **Cloudflare Pages** （Phase 2〜）
@@ -657,19 +661,22 @@ UI表示・コピー機能
 - ✅ **リアルタイムプレビュー（note風デザイン）** - 完了！
 - ✅ **複数バージョン生成（A/Bテスト）** - 完了！
 - ✅ **音声入力対応（Web Speech API / Gemini Audio）** - 完了！
+- ✅ **Next.js 15への移行（App Router、パフォーマンス最適化）** - 完了！
 - ⚪ スレッド形式展開
 - ⚪ 10,000文字対応
 - ⚪ **読みやすさ/SEOスコア表示**
-- ⚪ Next.js 14への移行検討
 
 ### Phase 2（中期）🚀
 
 #### コア機能
-- 🔲 **ユーザー認証**（Supabase Auth）
-- 🔲 **note自動投稿**（Playwright統合）
+- ✅ **ユーザー認証**（Supabase Auth）- 完了！
+  - Google/Email認証、パスワードリセット
+  - プロフィール更新、セッション管理
+- ✅ **note自動投稿**（Playwright統合）- 完了！
   - ブラウザ自動操作
   - 下書き保存/即公開選択
   - 画像自動アップロード
+  - ハッシュタグ対応
 - 🔲 **X自動投稿API連携**
 - 🔲 **記事履歴データベース化**（Supabase）
 - 🔲 **効果測定・分析機能**
