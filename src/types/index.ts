@@ -15,6 +15,8 @@ export * from './factcheck.types';
 export * from './draft.types';
 // SEO関連の型を再エクスポート
 export * from './seo.types';
+// テーマ関連の型を再エクスポート
+export * from './theme.types';
 // 図解関連の型を再エクスポート
 export type { DiagramResult } from '../services/diagram/diagramService';
 

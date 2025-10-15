@@ -1,0 +1,197 @@
+/**
+ * テーマ関連のグローバルスタイル
+ * ライトモード/ダークモードのCSS変数を定義
+ */
+
+/* ===============================================
+   ライトモード（デフォルト）
+   =============================================== */
+:root,
+[data-theme='light'] {
+  /* 背景色 */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  --color-bg-elevated: #ffffff;
+  
+  /* テキスト色 */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #ffffff;
+  
+  /* ボーダー色 */
+  --color-border-primary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+  --color-border-focus: #6366f1;
+  
+  /* ブランドカラー */
+  --color-brand-primary: #6366f1;
+  --color-brand-secondary: #8b5cf6;
+  --color-brand-accent: #ec4899;
+  
+  /* ステータスカラー */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* シャドウ */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  /* 透明度 */
+  --opacity-backdrop: 0.5;
+  --opacity-disabled: 0.5;
+  --opacity-hover: 0.8;
+}
+
+/* ===============================================
+   ダークモード
+   =============================================== */
+[data-theme='dark'],
+.dark {
+  /* 背景色 */
+  --color-bg-primary: #111827;
+  --color-bg-secondary: #1f2937;
+  --color-bg-tertiary: #374151;
+  --color-bg-elevated: #1f2937;
+  
+  /* テキスト色 */
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #111827;
+  
+  /* ボーダー色 */
+  --color-border-primary: #374151;
+  --color-border-secondary: #4b5563;
+  --color-border-focus: #818cf8;
+  
+  /* ブランドカラー（ダークモードでは少し明るく） */
+  --color-brand-primary: #818cf8;
+  --color-brand-secondary: #a78bfa;
+  --color-brand-accent: #f472b6;
+  
+  /* ステータスカラー（ダークモードでは少し明るく） */
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+  
+  /* シャドウ（ダークモードでは控えめに） */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+  
+  /* 透明度 */
+  --opacity-backdrop: 0.7;
+  --opacity-disabled: 0.4;
+  --opacity-hover: 0.9;
+}
+
+/* ===============================================
+   スムーズなテーマ遷移
+   =============================================== */
+* {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              color 0.3s ease;
+}
+
+/* アニメーションは遷移から除外 */
+*:where([class*="animate-"]) {
+  transition: none !important;
+}
+
+/* ===============================================
+   ユーティリティクラス
+   =============================================== */
+
+/* 背景色 */
+.bg-theme-primary {
+  background-color: var(--color-bg-primary);
+}
+
+.bg-theme-secondary {
+  background-color: var(--color-bg-secondary);
+}
+
+.bg-theme-tertiary {
+  background-color: var(--color-bg-tertiary);
+}
+
+/* テキスト色 */
+.text-theme-primary {
+  color: var(--color-text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-theme-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+/* ボーダー色 */
+.border-theme-primary {
+  border-color: var(--color-border-primary);
+}
+
+.border-theme-secondary {
+  border-color: var(--color-border-secondary);
+}
+
+/* ブランドカラー */
+.bg-brand-primary {
+  background-color: var(--color-brand-primary);
+}
+
+.text-brand-primary {
+  color: var(--color-brand-primary);
+}
+
+/* ===============================================
+   ダークモード対応のスクロールバー
+   =============================================== */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-secondary);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-secondary) var(--color-bg-secondary);
+}
+
+/* ===============================================
+   ダークモード対応の選択テキスト
+   =============================================== */
+::selection {
+  background-color: var(--color-brand-primary);
+  color: var(--color-text-inverse);
+}
+
+::-moz-selection {
+  background-color: var(--color-brand-primary);
+  color: var(--color-text-inverse);
+}
+
