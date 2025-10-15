@@ -293,17 +293,61 @@ const App: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 text-gray-800 font-sans relative overflow-hidden">
-            {/* Animated Background */}
+            {/* Animated Background with Mascot Characters */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                {/* PC作業中のマスコット（左下） */}
+                <img 
+                    src="/mascot-pc.jpg" 
+                    alt="UnionAI Mascot" 
+                    className="absolute bottom-0 left-0 w-48 h-48 object-contain opacity-15 animate-float"
+                    style={{ animationDelay: '0s' }}
+                />
+                
+                {/* ドリンクを持つマスコット（右上） */}
+                <img 
+                    src="/mascot-drink.png" 
+                    alt="UnionAI Mascot" 
+                    className="absolute top-20 right-10 w-40 h-40 object-contain opacity-15 animate-float"
+                    style={{ animationDelay: '1s' }}
+                />
+                
+                {/* ドリンクを持つマスコット（左中央） */}
+                <img 
+                    src="/mascot-drink.png" 
+                    alt="UnionAI Mascot" 
+                    className="absolute top-1/2 left-10 w-32 h-32 object-contain opacity-10 animate-float"
+                    style={{ animationDelay: '2s' }}
+                />
+                
+                {/* PC作業中のマスコット（右下） */}
+                <img 
+                    src="/mascot-pc.jpg" 
+                    alt="UnionAI Mascot" 
+                    className="absolute bottom-10 right-0 w-36 h-36 object-contain opacity-12 animate-float"
+                    style={{ animationDelay: '1.5s' }}
+                />
+            </div>
             
             {/* Header */}
             <header className="relative backdrop-blur-sm bg-white/80 border-b border-white/20 shadow-lg">
                 <div className="container mx-auto px-6 py-6">
                     <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-4">
+                            {/* マスコットアイコン */}
+                            <img 
+                                src="/mascot-drink.png" 
+                                alt="UnionAI Mascot" 
+                                className="w-16 h-16 object-contain animate-bounce-slow"
+                            />
+                        </div>
                         <div className="flex-1 text-center">
                             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
                                 note記事自動生成エージェント
                             </h1>
-                            <p className="text-gray-600 text-lg font-medium">noteの記事作成をAIで自動化し、あなたの執筆活動をサポートします</p>
+                            <p className="text-gray-600 text-lg font-medium">
+                                noteの記事作成をAIで自動化し、あなたの執筆活動をサポートします
+                                <span className="text-purple-600 font-semibold ml-2">by UnionAI</span>
+                            </p>
                         </div>
                         <div className="flex space-x-3 items-center">
                             <ThemeToggle />
@@ -313,7 +357,8 @@ const App: React.FC = () => {
                             >
                                 🎙️ 音声入力
                             </button>
-                            <button
+                            {/* 複雑な機能は一旦非表示 */}
+                            {/* <button
                                 onClick={() => setShowABTestPanel(true)}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                             >
@@ -354,7 +399,7 @@ const App: React.FC = () => {
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                             >
                                 🐦 X投稿管理
-                            </button>
+                            </button> */}
                         </div>
                     </div>
                 </div>
@@ -369,7 +414,7 @@ const App: React.FC = () => {
                                 記事設定
                             </h2>
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <InputGroup label="記事のテーマ・キーワード or YouTube URL" id="keyword" value={formData.keyword} onChange={handleChange} placeholder="例: 副業 始め方 または https://www.youtube.com/watch?v=..." required />
+                                <InputGroup label="記事のテーマ・キーワード" id="keyword" value={formData.keyword} onChange={handleChange} placeholder="例: 副業 始め方" required />
                                 <InputGroup label="文体 (トーン)" id="tone" as="select" options={TONE_OPTIONS} value={formData.tone} onChange={handleChange} />
                                 <InputGroup label="想定する読者層" id="audience" as="select" options={AUDIENCE_OPTIONS} value={formData.audience} onChange={handleChange} />
                                 <InputGroup label="目安文字数" id="targetLength" type="number" value={formData.targetLength} onChange={handleChange} />
@@ -515,6 +560,37 @@ const App: React.FC = () => {
                 onClose={() => setShowXPostManager(false)}
                 initialPosts={currentXPosts}
             />
+
+            {/* Footer with UnionAI Branding */}
+            <footer className="relative backdrop-blur-sm bg-white/80 border-t border-white/20 shadow-lg mt-12">
+                <div className="container mx-auto px-6 py-6">
+                    <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                        <div className="flex items-center space-x-3">
+                            <img 
+                                src="/mascot-pc.jpg" 
+                                alt="UnionAI Mascot" 
+                                className="w-12 h-12 object-contain opacity-80"
+                            />
+                            <div>
+                                <p className="text-gray-700 font-bold text-lg">
+                                    株式会社UnionAI
+                                </p>
+                                <p className="text-gray-500 text-sm">
+                                    AI-Powered Content Creation
+                                </p>
+                            </div>
+                        </div>
+                        <div className="text-center md:text-right">
+                            <p className="text-gray-600 text-sm">
+                                © 2025 UnionAI, Inc. All rights reserved.
+                            </p>
+                            <p className="text-gray-500 text-xs mt-1">
+                                Powered by Gemini AI & Next.js
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
 
         </div>
     );

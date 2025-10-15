@@ -113,6 +113,7 @@ module.exports = {
         'scale-in': 'scaleIn 0.2s ease-out',
         'pulse-slow': 'pulse 3s infinite',
         'bounce-slow': 'bounce 2s infinite',
+        'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -130,6 +131,10 @@ module.exports = {
         scaleIn: {
           '0%': { transform: 'scale(0.9)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-20px) rotate(3deg)' },
         },
       },
       backgroundImage: {

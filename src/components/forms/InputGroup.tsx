@@ -4,13 +4,16 @@ import React from 'react';
 interface InputGroupProps {
     label: string;
     id: string;
-    type?: 'text' | 'number' | 'password';
-    value: string | number;
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+    type?: 'text' | 'number' | 'password' | 'email' | 'date' | 'datetime-local';
+    value: string | number | boolean | string[];
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
     placeholder?: string;
     required?: boolean;
-    as?: 'input' | 'select';
+    as?: 'input' | 'select' | 'textarea' | 'checkbox' | 'multi-select';
     options?: string[];
+    rows?: number; // textareaの行数
+    description?: string; // フィールドの説明
+    multiple?: boolean; // multi-selectで複数選択可能
 }
 
 const InputGroup: React.FC<InputGroupProps> = ({

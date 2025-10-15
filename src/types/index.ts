@@ -36,12 +36,73 @@ export enum Audience {
   EXPERT = '専門家向け',
 }
 
+export enum ArticleCategory {
+  BUSINESS = 'ビジネス・副業',
+  LIFESTYLE = 'ライフスタイル',
+  TECHNOLOGY = 'テクノロジー',
+  HEALTH = '健康・美容',
+  EDUCATION = '教育・学習',
+  ENTERTAINMENT = 'エンターテイメント',
+  FINANCE = '金融・投資',
+  TRAVEL = '旅行・観光',
+  FOOD = 'グルメ・料理',
+  FASHION = 'ファッション',
+  SPORTS = 'スポーツ・フィットネス',
+  HOBBY = '趣味・娯楽',
+}
+
+export interface ContentStructure {
+  includeIntroduction: boolean;
+  includeFAQ: boolean;
+  includeConclusion: boolean;
+  sectionCount: number;
+  includeTOC: boolean; // 目次の生成
+  includeCallToAction: boolean; // 行動喚起の追加
+}
+
+export interface SEOSettings {
+  focusKeyword: string;
+  relatedKeywords: string[];
+  metaDescriptionLength: number;
+  includeSchema: boolean;
+  targetSearchIntent: 'informational' | 'transactional' | 'navigational' | 'commercial';
+  enableKeywordDensityOptimization: boolean;
+}
+
+export interface ImageSettings {
+  style: 'リアル' | 'イラスト' | 'アイコン' | 'グラフィック';
+  colorTone: '明るい' | '落ち着いた' | 'モノクロ' | 'カラフル';
+  aspectRatio: '16:9' | '4:3' | '1:1' | '3:2';
+  includeEyecatch: boolean;
+  includeInlineGraphics: boolean;
+  graphicsCount: number; // インライン図解の数
+}
+
+export interface PublishSettings {
+  publishSchedule?: Date;
+  targetPlatforms: ('note' | 'blog' | 'qiita' | 'zenn' | 'hatena')[];
+  enableAnalytics: boolean;
+  enableSEOOptimization: boolean;
+  autoPublish: boolean;
+  notificationSettings: {
+    email: boolean;
+    slack: boolean;
+    discord: boolean;
+  };
+}
+
 export interface FormData {
   keyword: string;
   tone: Tone;
   audience: Audience;
   targetLength: number;
   imageTheme: string;
+  category: ArticleCategory;
+  contentStructure: ContentStructure;
+  seoSettings: SEOSettings;
+  imageSettings: ImageSettings;
+  publishSettings: PublishSettings;
+  // 後方互換性のため古いフィールドも保持
   imageOptions?: {
     eyecatch: boolean;
     inlineGraphics: boolean;
