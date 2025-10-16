@@ -15,7 +15,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keywo
 
     // YouTube URLかどうかで使用するステップ配列を決定
     const steps = isYouTubeURL(keyword) ? ALL_STEPS_WITH_YOUTUBE : ALL_STEPS;
-    const currentIndex = steps.findIndex(step => step === currentStep);
+    const currentIndex = (steps || []).findIndex(step => step === currentStep);
     
     // 8段階ワークフローのステップ詳細情報（ファクトチェック追加）
     const stepDetails = [
@@ -70,10 +70,10 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, error, keywo
 
             {/* ステップ詳細表示 */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-6">
-                {stepDetails.filter(detail => steps.includes(detail.step)).map((detail, index) => {
-                    const isCompleted = steps.indexOf(detail.step) < currentIndex;
+                {(stepDetails || []).filter(detail => (steps || []).includes(detail.step)).map((detail, index) => {
+                    const isCompleted = (steps || []).indexOf(detail.step) < currentIndex;
                     const isCurrent = detail.step === currentStep;
-                    const isPending = steps.indexOf(detail.step) > currentIndex;
+                    const isPending = (steps || []).indexOf(detail.step) > currentIndex;
                     
                     return (
                         <div key={detail.step} className="text-center group">

@@ -96,7 +96,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
             case 'multi-select':
                 return (
                     <div className="space-y-2">
-                        {options.map((option) => (
+                        {(options || []).map((option) => (
                             <div key={option} className="flex items-center space-x-3">
                                 <input
                                     type="checkbox"
@@ -146,7 +146,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
                                 選択してください
                             </option>
                         )}
-                        {options.map((option) => (
+                        {(options || []).map((option) => (
                             <option key={option} value={option} className="bg-white text-gray-700">
                                 {option}
                             </option>

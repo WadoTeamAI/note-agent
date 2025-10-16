@@ -104,7 +104,7 @@ const FactCheckDisplay: React.FC<FactCheckDisplayProps> = ({ summary }) => {
       <div className="space-y-4">
         <h4 className="text-lg font-bold text-gray-800">詳細チェック結果</h4>
         
-        {summary.results.map((result: FactCheckResult) => (
+        {(summary.results || []).map((result: FactCheckResult) => (
           <div 
             key={result.id} 
             className={`border-2 rounded-lg p-4 ${getVerdictColor(result.verdict)}`}
@@ -140,10 +140,10 @@ const FactCheckDisplay: React.FC<FactCheckDisplayProps> = ({ summary }) => {
             </div>
 
             {/* 参照ソース */}
-            {expandedIds.has(result.id) && result.sources.length > 0 && (
+            {expandedIds.has(result.id) && (result.sources || []).length > 0 && (
               <div className="mt-4 pt-4 border-t space-y-3">
-                <h5 className="text-sm font-semibold text-gray-700">参照ソース ({result.sources.length}件)</h5>
-                {result.sources.map((source, idx) => (
+                <h5 className="text-sm font-semibold text-gray-700">参照ソース ({(result.sources || []).length}件)</h5>
+                {(result.sources || []).map((source, idx) => (
                   <div key={idx} className="bg-white p-3 rounded border">
                     <div className="flex items-start justify-between mb-2">
                       <a 

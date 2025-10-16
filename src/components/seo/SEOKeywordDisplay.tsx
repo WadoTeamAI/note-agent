@@ -23,9 +23,9 @@ const SEOKeywordDisplay: React.FC<SEOKeywordDisplayProps> = ({ keywordSet }) => 
 
   const copyAllKeywords = () => {
     const allKeywords = [
-      ...keywordSet.relatedKeywords.map(k => k.keyword),
-      ...keywordSet.longTailKeywords.map(k => k.keyword),
-      ...keywordSet.questionKeywords.map(k => k.keyword),
+      ...(keywordSet.relatedKeywords || []).map(k => k.keyword),
+      ...(keywordSet.longTailKeywords || []).map(k => k.keyword),
+      ...(keywordSet.questionKeywords || []).map(k => k.keyword),
       ...keywordSet.lsiKeywords,
     ].join('\n');
     
@@ -166,7 +166,7 @@ const SEOKeywordDisplay: React.FC<SEOKeywordDisplayProps> = ({ keywordSet }) => 
             ⭐ 推奨キーワード（優先度高）
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {keywordSet.recommendedKeywords.map(kw => renderKeywordCard(kw, true))}
+            {(keywordSet.recommendedKeywords || []).map(kw => renderKeywordCard(kw, true))}
           </div>
         </div>
       )}
@@ -221,25 +221,25 @@ const SEOKeywordDisplay: React.FC<SEOKeywordDisplayProps> = ({ keywordSet }) => 
       <div className="space-y-3">
         {activeTab === 'related' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {keywordSet.relatedKeywords.map(kw => renderKeywordCard(kw))}
+            {(keywordSet.relatedKeywords || []).map(kw => renderKeywordCard(kw))}
           </div>
         )}
         
         {activeTab === 'longtail' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {keywordSet.longTailKeywords.map(kw => renderKeywordCard(kw))}
+            {(keywordSet.longTailKeywords || []).map(kw => renderKeywordCard(kw))}
           </div>
         )}
         
         {activeTab === 'question' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {keywordSet.questionKeywords.map(kw => renderKeywordCard(kw))}
+            {(keywordSet.questionKeywords || []).map(kw => renderKeywordCard(kw))}
           </div>
         )}
         
         {activeTab === 'lsi' && (
           <div className="flex flex-wrap gap-2">
-            {keywordSet.lsiKeywords.map((keyword, index) => (
+            {(keywordSet.lsiKeywords || []).map((keyword, index) => (
               <button
                 key={index}
                 onClick={() => copyKeyword(keyword)}
