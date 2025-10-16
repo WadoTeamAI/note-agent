@@ -158,7 +158,7 @@ const App: React.FC = () => {
                 originalOutline: {
                     title: outline.title,
                     metaDescription: outline.metaDescription,
-                    sections: outline.sections.map(section => ({
+                    sections: (outline.sections || []).map(section => ({
                         heading: section.heading,
                         subheadings: section.content ? [section.content] : []
                     }))
@@ -217,8 +217,8 @@ const App: React.FC = () => {
 
             // X投稿承認データを設定
             const allPosts = [
-                ...xPosts.shortPosts.map(post => ({ type: post.type, content: post.text, audience: post.target })),
-                ...xPosts.longPosts.map(post => ({ type: post.type, content: post.text, audience: post.target }))
+                ...(xPosts.shortPosts || []).map(post => ({ type: post.type, content: post.text, audience: post.target })),
+                ...(xPosts.longPosts || []).map(post => ({ type: post.type, content: post.text, audience: post.target }))
             ];
             const xPostData: XPostApprovalData = {
                 originalPosts: allPosts

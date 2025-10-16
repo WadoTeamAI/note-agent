@@ -168,7 +168,7 @@ const ABTestResultDisplay: React.FC<ABTestResultDisplayProps> = ({
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {result.versions.map(version => (
+                  {(result.versions || []).map(version => (
                     <div
                       key={version.id}
                       onClick={() => handleVersionSelect(version)}

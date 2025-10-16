@@ -160,7 +160,7 @@ const BatchResultsDisplay: React.FC<BatchResultsDisplayProps> = ({ results }) =>
             <div className="backdrop-blur-sm bg-white/60 p-6 rounded-xl border border-white/30">
                 <h4 className="text-lg font-bold text-gray-800 mb-4">生成結果一覧</h4>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {filteredJobs.map((job) => (
+                    {(filteredJobs || []).map((job) => (
                         <div 
                             key={job.id}
                             className={`flex items-center justify-between p-4 rounded-lg border transition-all cursor-pointer hover:shadow-md ${

@@ -172,7 +172,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
           <div className="space-y-4">
             {/* メンバー一覧 */}
             <div className="space-y-3">
-              {team.members.map((member) => (
+              {(team.members || []).map((member) => (
                 <div
                   key={member.id}
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"

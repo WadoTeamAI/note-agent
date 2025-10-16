@@ -138,7 +138,7 @@ const ABTestPanel: React.FC<ABTestPanelProps> = ({ formData, onClose, onStart })
               🎨 バリエーションタイプ（複数選択可）
             </label>
             <div className="space-y-3">
-              {variationOptions.map(option => (
+              {(variationOptions || []).map(option => (
                 <button
                   key={option.type}
                   onClick={() => handleTypeToggle(option.type)}

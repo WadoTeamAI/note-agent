@@ -192,7 +192,7 @@ export const VersionHistory: React.FC<VersionHistoryProps> = ({
 
             {/* バージョン一覧 */}
             <div className="space-y-3">
-              {versions.map((version) => (
+              {(versions || []).map((version) => (
                 <div
                   key={version.id}
                   className={`border rounded-lg p-4 transition-colors ${
@@ -311,7 +311,7 @@ export const VersionHistory: React.FC<VersionHistoryProps> = ({
 
         {activeTab === 'changes' && (
           <div className="space-y-3">
-            {changeHistory.map((change) => (
+            {(changeHistory || []).map((change) => (
               <div key={change.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50">
                 <div className="text-lg">{getActionIcon(change.action)}</div>
                 <div className="flex-1 min-w-0">

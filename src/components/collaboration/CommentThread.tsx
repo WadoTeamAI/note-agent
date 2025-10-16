@@ -208,9 +208,9 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
           </div>
 
           {/* 返信一覧 */}
-          {comment.thread.length > 0 && (
+          {(comment.thread || []).length > 0 && (
             <div className="mt-4 space-y-3 border-l-2 border-gray-200 pl-4">
-              {comment.thread.map((reply) => (
+              {(comment.thread || []).map((reply) => (
                 <div key={reply.id} className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-xs font-medium">

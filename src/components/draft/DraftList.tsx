@@ -145,7 +145,7 @@ const DraftList: React.FC<DraftListProps> = ({ onLoadDraft, onClose, isOpen }) =
               <p>下書きがありません</p>
             </div>
           ) : (
-            filteredDrafts.map(draft => (
+            (filteredDrafts || []).map(draft => (
               <div
                 key={draft.metadata.id}
                 onClick={() => handleLoad(draft.metadata.id)}

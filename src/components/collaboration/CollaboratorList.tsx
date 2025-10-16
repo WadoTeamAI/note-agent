@@ -80,7 +80,7 @@ export const CollaboratorList: React.FC<CollaboratorListProps> = ({
           コラボレーター ({collaborators.length})
         </h3>
         <div className="flex space-x-1">
-          {collaborators.slice(0, 5).map((user) => (
+          {(collaborators || []).slice(0, 5).map((user) => (
             <div
               key={user.id}
               className="relative"
@@ -114,7 +114,7 @@ export const CollaboratorList: React.FC<CollaboratorListProps> = ({
 
       {showDetails && (
         <div className="space-y-3">
-          {collaborators.map((user) => (
+          {(collaborators || []).map((user) => (
             <div
               key={user.id}
               className={`flex items-center justify-between p-3 rounded-lg transition-colors ${

@@ -185,7 +185,7 @@ export const CollaborationSidebar: React.FC<CollaborationSidebarProps> = ({
         {/* タブナビゲーション */}
         <div className="border-b border-gray-200">
           <nav className="flex overflow-x-auto" aria-label="Tabs">
-            {tabs.map((tab) => (
+            {(tabs || []).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
@@ -266,7 +266,7 @@ export const CollaborationSidebar: React.FC<CollaborationSidebarProps> = ({
 
               {/* コメント一覧 */}
               <div className="space-y-4">
-                {comments.map((comment) => (
+                {(comments || []).map((comment) => (
                   <CommentThread
                     key={comment.id}
                     comment={comment}
