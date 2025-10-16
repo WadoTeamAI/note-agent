@@ -10,8 +10,8 @@ import {
   DraftLoadOptions,
   DraftStatus
 } from '../../types/draft.types';
-import { FormData, FinalOutput } from '../../types/article.types';
-import { ProcessStep } from '../../types';
+import { FinalOutput } from '../../types/article.types';
+import { ProcessStep, FormData } from '../../types';
 
 const DRAFT_STORAGE_KEY = 'note-agent-drafts';
 const MAX_DRAFTS = 20; // 最大保存件数

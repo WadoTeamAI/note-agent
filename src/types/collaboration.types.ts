@@ -153,10 +153,10 @@ export interface Permission {
 // 通知
 export interface Notification {
   id: string;
-  type: 'comment' | 'approval-request' | 'approval-granted' | 'approval-rejected' | 'mention';
+  type: 'comment' | 'approval-request' | 'approval-granted' | 'approval-rejected' | 'mention' | 'team-invitation' | 'role-changed';
   title: string;
   message: string;
-  documentId: string;
+  documentId?: string;
   userId: string;
   isRead: boolean;
   createdAt: Date;

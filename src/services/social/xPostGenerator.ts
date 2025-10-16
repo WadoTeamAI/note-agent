@@ -91,7 +91,7 @@ JSON形式で出力してください:
     model: 'gemini-2.5-flash',
     contents: prompt,
   });
-  const text = response.text;
+  const text = response.text || '';
   
   // JSON抽出
   const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -157,7 +157,7 @@ JSON形式で出力してください:
     model: 'gemini-2.5-flash',
     contents: prompt,
   });
-  const text = response2.text;
+  const text = response2.text || '';
   
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
@@ -225,7 +225,7 @@ JSON形式で出力してください:
     model: 'gemini-2.5-flash',
     contents: prompt,
   });
-  const text = response3.text;
+  const text = response3.text || '';
   
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {

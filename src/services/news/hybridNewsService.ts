@@ -146,6 +146,7 @@ export class HybridNewsService {
                 url: 'https://example.com/ai-trends',
                 publishedAt: new Date().toISOString(),
                 source: {
+                    id: null,
                     name: 'サンプルニュース'
                 }
             },
@@ -155,6 +156,7 @@ export class HybridNewsService {
                 url: 'https://example.com/side-business',
                 publishedAt: new Date(Date.now() - 3600000).toISOString(), // 1時間前
                 source: {
+                    id: null,
                     name: 'サンプルニュース'
                 }
             },
@@ -164,6 +166,7 @@ export class HybridNewsService {
                 url: 'https://example.com/dx-trends',
                 publishedAt: new Date(Date.now() - 7200000).toISOString(), // 2時間前
                 source: {
+                    id: null,
                     name: 'サンプルニュース'
                 }
             }

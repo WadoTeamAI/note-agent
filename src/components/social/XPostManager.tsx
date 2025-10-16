@@ -21,7 +21,7 @@ const XPostManager: React.FC<XPostManagerProps> = ({ isOpen, onClose, initialPos
     useEffect(() => {
         if (initialPosts.length > 0) {
             initialPosts.forEach(post => {
-                exporter.posts.set(post.id, post);
+                exporter.addPost(post);
             });
         }
         exporter.loadFromLocalStorage();

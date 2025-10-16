@@ -5,8 +5,9 @@
 
 import { supabase, isSupabaseAvailable, ArticleHistoryRecord, ArticleHistorySummary, ArticleGenerationStats } from './supabaseClient';
 
-// isSupabaseAvailableを再エクスポート
+// 必要な型と関数を再エクスポート
 export { isSupabaseAvailable } from './supabaseClient';
+export type { ArticleHistoryRecord, ArticleHistorySummary, ArticleGenerationStats } from './supabaseClient';
 import { FinalOutput, ArticleOutline } from '../../types/article.types';
 import { Audience, Tone } from '../../types';
 

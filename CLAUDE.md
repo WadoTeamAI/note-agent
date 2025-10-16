@@ -6,14 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a comprehensive Japanese note article auto-generation agent that uses Google Gemini AI to create SEO-optimized blog articles. The application features an integrated research system that combines Google Search analysis, note platform insights, and social media trends to generate complete articles with cover images and social media content through a 7-step AI workflow.
 
-**Key Features (Phase 1 Complete):**
+**Key Features (Phase 1.5 Complete):**
 - ✅ Integrated multi-source research capability (Google Search + note platform + SNS trends)
 - ✅ Anti-AI writing style with emphasis on natural Japanese expression
 - ✅ Support for YouTube URL input with video content analysis
 - ✅ Multi-length article generation (2,500 / 5,000 / 10,000 characters)
 - ✅ X (Twitter) promotion post generation (short/long/thread formats)
-- ✅ Article history with Supabase integration
-- ✅ Modern UI with UnionAI-inspired design (glassmorphism effects)
+- ✅ Audio input support with Web Speech API integration
+- ✅ A/B testing with multiple article version generation
+- ✅ Next.js 14 App Router architecture with SSR optimization
+- ✅ Streamlined UI focusing on core features
+- ✅ Visual status indicators using local image assets
 
 ## Development Commands
 
@@ -45,7 +48,7 @@ The application requires a valid Gemini API key. Follow these steps:
 
 ## Architecture
 
-### Core Workflow (Current Implementation)
+### Core Workflow (Current Implementation - Phase 1.5)
 The application follows a 6-step AI generation pipeline:
 1. **ANALYZING**: SEO analysis and integrated research (Google Search + note platform + SNS trends)
 2. **OUTLINING**: Article structure generation with title, meta description, sections, and FAQ
@@ -56,23 +59,36 @@ The application follows a 6-step AI generation pipeline:
 
 ### Optional Workflow Steps
 - **TRANSCRIBING** (YouTube only): Video content analysis and transcription when YouTube URL is provided
+- **VOICE_PROCESSING** (Audio input): Voice-to-text conversion and idea processing
 
-### Future Extensions (Phase 1.5+)
+### Phase 1.5 Features (Recently Implemented)
+- ✅ **Audio Input**: Web Speech API integration for voice-to-text article ideas
+- ✅ **A/B Testing**: Multiple article version generation with different approaches
+- ✅ **Next.js 14 Migration**: App Router architecture with SSR optimization  
+- ✅ **UI Simplification**: Streamlined interface focusing on core features
+- ✅ **Status Images**: Visual progress indicators using local image assets
+- ✅ **Error Handling**: Enhanced SSR/CSR compatibility and graceful degradation
+
+### Future Extensions (Phase 2+)
 - Inline graphics generation (Mermaid.js integration)
-- A/B testing with multiple article versions
 - Real-time preview and dark mode
-- Voice input and audio transcription
+- Collaborative editing with real-time sync
+- Note platform auto-publishing
 
 ### Key Components
 
-**Core Application:**
-- **App.tsx**: Main application component managing workflow state, includes history panel integration
+**Core Application (Next.js 14):**
+- **app/page.tsx**: Main application component with App Router structure, manages workflow state
+- **app/layout.tsx**: Root layout with metadata and client providers
 - **types/index.ts**: Main type definitions that re-exports from article.types.ts, api.types.ts, and social.types.ts
 - **types/social.types.ts**: X (Twitter) post generation types (XPost, XThread, XPostGenerationResult)
+- **components/providers/ClientProviders.tsx**: Client-side provider wrapper for SSR compatibility
 
 **AI & Social Services:**
 - **services/ai/geminiService.ts**: All Gemini AI API interactions (text generation, image generation)
 - **services/social/xPostGenerator.ts**: X post generation service (short/long/thread formats)
+- **services/audio/speechRecognitionService.ts**: Web Speech API integration for voice input
+- **components/audio/VoiceIdeaProcessor.tsx**: Voice processing and idea conversion component
 
 **Database & History:**
 - **services/database/supabaseClient.ts**: Supabase client configuration and types
@@ -196,10 +212,11 @@ Multiple experience patterns are provided to AI:
 - These services are called from `analyzeSerpResults()` with fallback to basic analysis
 
 ### Phase Development Status
-Current implementation is Phase 1 (MVP). See `requirements.md` for detailed roadmap:
+Current implementation is Phase 1.5 (Extended Features). See `requirements.md` for detailed roadmap:
 - Phase 1: Core generation (✅ Complete)
-- Phase 1.5: Extended features (inline graphics, longer content, A/B testing)
-- Phase 2: External API integration (note API, X API, Supabase)
+- Phase 1.5: Extended features (✅ Complete - audio input, A/B testing, Next.js 14 migration)
+- Phase 2: External API integration (note API, X API, Supabase) 
+- Phase 2.5: Real-time collaboration features
 - Phase 3: Analytics and optimization
 - Phase 4: Multi-platform publishing
 

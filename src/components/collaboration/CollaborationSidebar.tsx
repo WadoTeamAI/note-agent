@@ -87,7 +87,14 @@ export const CollaborationSidebar: React.FC<CollaborationSidebarProps> = ({
   } | null>(null);
   const [newCommentContent, setNewCommentContent] = useState('');
 
-  const tabs = [
+  type TabId = 'collaborators' | 'comments' | 'versions' | 'team';
+  
+  const tabs: Array<{
+    id: TabId;
+    label: string;
+    icon: React.ReactNode;
+    count: number;
+  }> = [
     {
       id: 'collaborators' as const,
       label: 'メンバー',

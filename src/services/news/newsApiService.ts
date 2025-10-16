@@ -25,7 +25,7 @@ export class NewsApiService {
     private baseUrl = 'https://newsapi.org/v2';
 
     constructor() {
-        this.apiKey = import.meta.env.VITE_NEWS_API_KEY || process.env.NEWS_API_KEY || '';
+        this.apiKey = process.env.NEXT_PUBLIC_NEWS_API_KEY || process.env.VITE_NEWS_API_KEY || process.env.NEWS_API_KEY || '';
         if (!this.apiKey) {
             console.warn('News API key not found. News API functionality will be limited.');
         }
@@ -80,7 +80,8 @@ export class NewsApiService {
                 [NewsCategory.SCIENCE]: 'science',
                 [NewsCategory.SPORTS]: 'sports',
                 [NewsCategory.ENTERTAINMENT]: 'entertainment',
-                [NewsCategory.GENERAL]: 'general'
+                [NewsCategory.GENERAL]: 'general',
+                [NewsCategory.LIFESTYLE]: 'general'
             };
             
             if (categoryMap[category]) {
@@ -167,7 +168,7 @@ export class NewsApiService {
                 urlToImage: article.urlToImage || undefined,
                 publishedAt: article.publishedAt,
                 source: {
-                    id: article.source.id || undefined,
+                    id: article.source.id || null,
                     name: article.source.name
                 },
                 author: article.author || undefined,

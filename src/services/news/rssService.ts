@@ -190,7 +190,7 @@ export class RSSService {
                 link,
                 pubDate,
                 category: category.length > 0 ? category : undefined,
-                author: this.getTextContent(item, 'author'),
+                author: this.getTextContent(item, 'author') || undefined,
                 content: this.getTextContent(item, 'content:encoded') || undefined,
                 enclosure
             };

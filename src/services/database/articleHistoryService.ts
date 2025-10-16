@@ -277,8 +277,8 @@ export class ArticleHistoryService {
             existing.unshift(fullRecord);
 
             // 最大保存数を制限
-            const limited = existing.slice(0, this.constructor.MAX_LOCAL_HISTORY);
-            localStorage.setItem(this.constructor.LOCAL_STORAGE_KEY, JSON.stringify(limited));
+            const limited = existing.slice(0, ArticleHistoryService.MAX_LOCAL_HISTORY);
+            localStorage.setItem(ArticleHistoryService.LOCAL_STORAGE_KEY, JSON.stringify(limited));
 
             return id;
         } catch (error) {
@@ -313,7 +313,7 @@ export class ArticleHistoryService {
         try {
             const data = this.getLocalStorageData();
             const filtered = data.filter(item => item.id !== id);
-            localStorage.setItem(this.constructor.LOCAL_STORAGE_KEY, JSON.stringify(filtered));
+            localStorage.setItem(ArticleHistoryService.LOCAL_STORAGE_KEY, JSON.stringify(filtered));
             return true;
         } catch (error) {
             console.error('Failed to delete from localStorage:', error);
@@ -385,7 +385,7 @@ export class ArticleHistoryService {
     // ユーティリティ
     private getLocalStorageData(): ArticleHistoryRecord[] {
         try {
-            const data = localStorage.getItem(this.constructor.LOCAL_STORAGE_KEY);
+            const data = localStorage.getItem(ArticleHistoryService.LOCAL_STORAGE_KEY);
             return data ? JSON.parse(data) : [];
         } catch {
             return [];

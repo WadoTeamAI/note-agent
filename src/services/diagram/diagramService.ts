@@ -56,9 +56,7 @@ export class DiagramService {
         showSequenceNumbers: true
       },
       gantt: {
-        useMaxWidth: true,
-        dateFormat: 'YYYY-MM-DD',
-        axisFormat: '%m/%d'
+        useMaxWidth: true
       }
     });
 

@@ -219,10 +219,12 @@ export class AnalyticsService {
                 keywordDensity: this.calculateKeywordDensity(formData.keyword, output.markdownContent)
             },
             factCheckResults: output.factCheckSummary ? {
-                claimsCount: output.factCheckSummary.claims?.length || 0,
+                claimsCount: output.factCheckSummary.totalClaims || 0,
                 verifiedClaims: output.factCheckSummary.verifiedClaims || 0,
-                flaggedClaims: output.factCheckSummary.flaggedClaims || 0,
-                confidenceScore: output.factCheckSummary.overallConfidence || 0
+                flaggedClaims: output.factCheckSummary.incorrectClaims || 0,
+                confidenceScore: output.factCheckSummary.overallConfidence === 'high' ? 0.9 
+                    : output.factCheckSummary.overallConfidence === 'medium' ? 0.6 
+                    : 0.3
             } : {
                 claimsCount: 0,
                 verifiedClaims: 0,

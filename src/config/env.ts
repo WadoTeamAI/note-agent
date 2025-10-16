@@ -3,11 +3,11 @@
  */
 
 export const env = {
-  geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
-  googleSearchApiKey: import.meta.env.VITE_GOOGLE_SEARCH_API_KEY || '',
-  searchEngineId: import.meta.env.VITE_SEARCH_ENGINE_ID || '',
-  isDevelopment: import.meta.env.DEV,
-  isProduction: import.meta.env.PROD,
+  geminiApiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '',
+  googleSearchApiKey: process.env.NEXT_PUBLIC_GOOGLE_SEARCH_API_KEY || process.env.VITE_GOOGLE_SEARCH_API_KEY || '',
+  searchEngineId: process.env.NEXT_PUBLIC_SEARCH_ENGINE_ID || process.env.VITE_SEARCH_ENGINE_ID || '',
+  isDevelopment: process.env.NODE_ENV === 'development',
+  isProduction: process.env.NODE_ENV === 'production',
 } as const;
 
 /**
@@ -17,7 +17,7 @@ export function validateEnv(): { isValid: boolean; missingVars: string[] } {
   const missingVars: string[] = [];
 
   if (!env.geminiApiKey) {
-    missingVars.push('VITE_GEMINI_API_KEY');
+    missingVars.push('NEXT_PUBLIC_GEMINI_API_KEY or VITE_GEMINI_API_KEY');
   }
 
   return {

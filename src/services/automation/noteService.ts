@@ -25,10 +25,12 @@ export class NoteAutoPostService {
             headless: config.headless ?? true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
-        this.page = await this.browser.newPage();
         
-        // Set user agent to avoid detection
-        await this.page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        // Create browser context with custom user agent
+        const context = await this.browser.newContext({
+            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        });
+        this.page = await context.newPage();
         
         // Login to note
         await this.login(config.email, config.password);

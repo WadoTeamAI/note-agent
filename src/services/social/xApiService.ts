@@ -3,7 +3,22 @@
  * X APIを使用した自動投稿機能
  */
 
-import { XPost, XThread, XPostStatus, XApiCredentials, XApiError } from '../../types/social.types';
+import { XPost, XThread } from '../../types/social.types';
+
+// X API認証情報の型定義
+interface XApiCredentials {
+    bearerToken?: string;
+    apiKey?: string;
+    apiSecret?: string;
+    accessToken?: string;
+    accessTokenSecret?: string;
+}
+
+// X APIエラーの型定義
+interface XApiError {
+    code: string;
+    message: string;
+}
 
 // 環境変数からX API認証情報を取得
 function getXApiCredentials(): XApiCredentials | null {
@@ -154,7 +169,7 @@ export class XApiService {
         try {
             for (const tweet of thread.tweets) {
                 const requestBody: any = {
-                    text: tweet.text
+                    text: tweet
                 };
 
                 // 2番目以降のツイートは前のツイートに返信する形で投稿
@@ -207,6 +222,7 @@ export class XApiService {
         if (delay <= 0) {
             return {
                 success: false,
+                message: '予約時刻は未来の時刻を指定してください',
                 error: {
                     code: 'INVALID_TIME',
                     message: '予約時刻は未来の時刻を指定してください'

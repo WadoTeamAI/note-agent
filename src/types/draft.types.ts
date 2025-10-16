@@ -2,8 +2,8 @@
  * 下書き関連の型定義
  */
 
-import { FormData, FinalOutput } from './article.types';
-import { ProcessStep } from './index';
+import { FinalOutput } from './article.types';
+import { ProcessStep, FormData } from './index';
 
 export interface Draft {
   id: string;                        // 一意なID（UUID）

@@ -120,7 +120,7 @@ JSON形式で出力してください：
       contents: prompt,
     });
 
-    const text = response.response.text();
+    const text = response.text || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     
     if (!jsonMatch) {
@@ -186,7 +186,7 @@ JSON形式で出力してください：
       contents: prompt,
     });
 
-    const text = response.response.text();
+    const text = response.text || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     
     if (!jsonMatch) {
@@ -253,7 +253,7 @@ JSON形式で出力してください：
       contents: prompt,
     });
 
-    const text = response.response.text();
+    const text = response.text || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     
     if (!jsonMatch) {
@@ -300,7 +300,7 @@ JSON形式で出力してください：
       contents: prompt,
     });
 
-    const text = response.response.text();
+    const text = response.text || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     
     if (!jsonMatch) {

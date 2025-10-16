@@ -76,6 +76,13 @@ export class XPostExporter {
     }
 
     /**
+     * 投稿を追加
+     */
+    addPost(post: PreparedPost): void {
+        this.posts.set(post.id, post);
+    }
+
+    /**
      * 投稿を更新
      */
     updatePost(id: string, updates: Partial<PreparedPost>): boolean {

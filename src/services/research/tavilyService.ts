@@ -117,7 +117,7 @@ JSON形式で出力してください:
       contents: prompt,
     });
 
-    const text = response.text;
+    const text = response.text || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     
     if (!jsonMatch) {
@@ -212,7 +212,7 @@ ${searchResult.answer ? `\nTavily要約: ${searchResult.answer}` : ''}
       contents: prompt,
     });
 
-    const text = response.text;
+    const text = response.text || '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     
     if (!jsonMatch) {

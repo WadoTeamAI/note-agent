@@ -113,7 +113,7 @@ export async function transcribeYouTubeVideo(url: string): Promise<string> {
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
-        return response.text;
+        return response.text || '';
     }, 'YouTube動画分析');
 }
 
@@ -143,7 +143,7 @@ FAQ候補: ${searchAnalysis.faqSuggestions.join(', ')}
                 model: 'gemini-2.5-flash',
                 contents: prompt,
             });
-            return response.text;
+            return response.text || '';
         }, 'SEO分析');
     } catch (error) {
         // フォールバック: 基本的なプロンプトベース分析
@@ -162,7 +162,7 @@ FAQ候補: ${searchAnalysis.faqSuggestions.join(', ')}
                 model: 'gemini-2.5-flash',
                 contents: fallbackPrompt,
             });
-            return response.text;
+            return response.text || '';
         }, 'SEO分析');
     }
 }
@@ -177,44 +177,10 @@ JSON形式で記事構成を作成（体験談・事例・エピソードを含�
         return await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        title: { type: Type.STRING, description: "記事のタイトル（SEOに強く、32文字以内）" },
-                        metaDescription: { type: Type.STRING, description: "記事のメタディスクリプション（120文字以内）" },
-                        introduction: { type: Type.STRING, description: "記事の導入文" },
-                        sections: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    heading: { type: Type.STRING, description: "H2見出し" },
-                                    content: { type: Type.STRING, description: "その見出しで書くべき内容の要約" },
-                                },
-                                 required: ["heading", "content"],
-                            },
-                        },
-                        faq: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    question: { type: Type.STRING, description: "よくある質問の質問文" },
-                                    answer: { type: Type.STRING, description: "質問に対する回答の要約" },
-                                },
-                                 required: ["question", "answer"],
-                            },
-                        },
-                    },
-                    required: ["title", "metaDescription", "introduction", "sections", "faq"],
-                },
-            },
         });
     }, '記事構成案生成');
 
-    const jsonText = response.text.trim();
+    const jsonText = (response.text || '').trim();
     return JSON.parse(jsonText);
 }
 
@@ -246,43 +212,9 @@ export async function createArticleOutlineWithInstructions(
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        title: { type: Type.STRING, description: "記事タイトル" },
-                        metaDescription: { type: Type.STRING, description: "メタディスクリプション（160文字以内）" },
-                        introduction: { type: Type.STRING, description: "導入文" },
-                        sections: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    heading: { type: Type.STRING, description: "見出し" },
-                                    content: { type: Type.STRING, description: "セクションの内容概要" },
-                                },
-                                required: ["heading", "content"],
-                            },
-                        },
-                        faq: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    question: { type: Type.STRING, description: "よくある質問の質問文" },
-                                    answer: { type: Type.STRING, description: "質問に対する回答の要約" },
-                                },
-                                 required: ["question", "answer"],
-                            },
-                        },
-                    },
-                    required: ["title", "metaDescription", "introduction", "sections", "faq"],
-                },
-            },
         });
 
-        const jsonText = response.text.trim();
+        const jsonText = (response.text || '').trim();
         return JSON.parse(jsonText);
     }, '特別指示付き記事構成案生成');
 }
@@ -312,7 +244,7 @@ FAQ: ${faqText}
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
-        return response.text;
+        return response.text || '';
     }, '記事本文作成');
 }
 
@@ -333,7 +265,7 @@ export async function createImagePrompt(articleTitle: string, articleContent: st
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
-        return response.text;
+        return response.text || '';
     }, '画像プロンプト生成');
 }
 
@@ -436,8 +368,6 @@ export async function generateDiagrams(content: string): Promise<DiagramResult[]
  */
 async function generateAdditionalDiagrams(content: string): Promise<DiagramResult[]> {
     return withRetry(async () => {
-        const model = ai.getGenerativeModel({ model: MODELS.fast });
-        
         const prompt = `以下の記事内容を分析し、読者の理解を深めるために効果的な図解を3つまで提案してください。
 
 記事内容:
@@ -460,8 +390,11 @@ ${content.substring(0, 2000)}...
 - 日本語でわかりやすいラベルを付ける
 - 記事の流れに沿った挿入位置を提案`;
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        const result = await ai.models.generateContent({
+            model: MODELS.fast,
+            contents: prompt,
+        });
+        const responseText = result.text || '';
         
         try {
             const jsonMatch = responseText.match(/\[[\s\S]*\]/);
@@ -504,18 +437,11 @@ export async function generateText(prompt: string): Promise<string> {
     return withRetry(async () => {
         validateEnvironment();
         
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-2.0-flash-exp",
-            generationConfig: {
-                temperature: 0.7,
-                topP: 0.8,
-                topK: 40,
-                maxOutputTokens: 8192,
-            }
+        const result = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
         });
-
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        return response.text();
+        
+        return result.text || '';
     }, 'テキスト生成');
 }

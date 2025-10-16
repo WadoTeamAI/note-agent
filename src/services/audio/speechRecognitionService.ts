@@ -29,7 +29,7 @@ export interface VoiceIdeaResult {
 }
 
 export class SpeechRecognitionService {
-  private recognition: SpeechRecognition | null = null;
+  private recognition: any | null = null;
   private isSupported: boolean = false;
   private isRecording: boolean = false;
   private onResultCallback?: (result: SpeechRecognitionResult) => void;
@@ -81,7 +81,7 @@ export class SpeechRecognitionService {
     if (!this.recognition) return;
 
     // 結果を受信
-    this.recognition.onresult = (event: SpeechRecognitionEvent) => {
+    this.recognition.onresult = (event: any) => {
       const lastResult = event.results[event.results.length - 1];
       const transcript = lastResult[0].transcript;
       const confidence = lastResult[0].confidence;
@@ -99,7 +99,7 @@ export class SpeechRecognitionService {
     };
 
     // エラーハンドリング
-    this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    this.recognition.onerror = (event: any) => {
       let errorMessage = '音声認識エラーが発生しました';
       
       switch (event.error) {
