@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { ArticleOutline, Audience, Tone } from '../../types';
 import { analyzeSearchResults } from '../research/searchService';
 import { diagramService, DiagramResult } from '../diagram/diagramService';
