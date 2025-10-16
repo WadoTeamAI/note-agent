@@ -51,6 +51,33 @@ const MODELS = {
     balanced: 'gemini-2.5-flash',  // バランス型
 };
 
+/**
+ * GeminiのレスポンスからJSONを抽出するヘルパー関数
+ * ```json ブロックやその他のマークダウン記法を除去
+ */
+function extractJsonFromResponse(text: string): string {
+    if (!text) return '{}';
+    
+    // JSONコードブロックのパターンを検出して除去
+    const jsonBlockPattern = /```(?:json)?\s*([\s\S]*?)\s*```/;
+    const match = text.match(jsonBlockPattern);
+    
+    if (match) {
+        return match[1].trim();
+    }
+    
+    // コードブロックがない場合、{ で始まる部分を探す
+    const jsonStartIndex = text.indexOf('{');
+    const jsonEndIndex = text.lastIndexOf('}');
+    
+    if (jsonStartIndex !== -1 && jsonEndIndex !== -1 && jsonEndIndex > jsonStartIndex) {
+        return text.substring(jsonStartIndex, jsonEndIndex + 1);
+    }
+    
+    // どちらも見つからない場合、元のテキストを返す
+    return text.trim();
+}
+
 // レート制限対応のリトライ機能
 async function withRetry<T>(
     operation: () => Promise<T>,
@@ -181,7 +208,17 @@ JSON形式で記事構成を作成（体験談・事例・エピソードを含�
     }, '記事構成案生成');
 
     const jsonText = (response.text || '').trim();
-    return JSON.parse(jsonText);
+    
+    // JSONコードブロックから実際のJSONを抽出
+    const cleanJsonText = extractJsonFromResponse(jsonText);
+    
+    try {
+        return JSON.parse(cleanJsonText);
+    } catch (error) {
+        console.error('JSON解析エラー:', error);
+        console.error('受信テキスト:', jsonText);
+        throw new Error(`記事構成の解析に失敗しました: ${error}`);
+    }
 }
 
 export async function createArticleOutlineWithInstructions(
@@ -215,7 +252,15 @@ export async function createArticleOutlineWithInstructions(
         });
 
         const jsonText = (response.text || '').trim();
-        return JSON.parse(jsonText);
+        const cleanJsonText = extractJsonFromResponse(jsonText);
+        
+        try {
+            return JSON.parse(cleanJsonText);
+        } catch (error) {
+            console.error('JSON解析エラー:', error);
+            console.error('受信テキスト:', jsonText);
+            throw new Error(`特別指示付き記事構成の解析に失敗しました: ${error}`);
+        }
     }, '特別指示付き記事構成案生成');
 }
 
@@ -400,7 +445,9 @@ ${content.substring(0, 2000)}...
             const jsonMatch = responseText.match(/\[[\s\S]*\]/);
             if (!jsonMatch) return [];
             
-            const proposedDiagrams = JSON.parse(jsonMatch[0]);
+            // JSONを安全に解析
+            const cleanJsonText = extractJsonFromResponse(jsonMatch[0]);
+            const proposedDiagrams = JSON.parse(cleanJsonText);
             const diagrams: DiagramResult[] = [];
             
             for (const proposed of proposedDiagrams) {
