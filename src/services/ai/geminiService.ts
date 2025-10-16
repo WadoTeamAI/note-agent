@@ -153,11 +153,11 @@ export async function analyzeSerpResults(keyword: string): Promise<string> {
         const prompt = `検索分析データ:
 キーワード: "${keyword}"
 検索意図: ${searchAnalysis.searchIntent}
-共通見出し: ${searchAnalysis.commonHeadings.join(', ')}
-差別化ポイント: ${searchAnalysis.differentiationPoints.join(', ')}
-FAQ候補: ${searchAnalysis.faqSuggestions.join(', ')}
-関連キーワード: ${searchAnalysis.relatedKeywords.join(', ')}
-競合トップ結果: ${searchAnalysis.competitorAnalysis.topResults.map(r => r.title).join(', ')}
+共通見出し: ${Array.isArray(searchAnalysis.commonHeadings) ? searchAnalysis.commonHeadings.join(', ') : '分析中'}
+差別化ポイント: ${Array.isArray(searchAnalysis.differentiationPoints) ? searchAnalysis.differentiationPoints.join(', ') : '分析中'}
+FAQ候補: ${Array.isArray(searchAnalysis.faqSuggestions) ? searchAnalysis.faqSuggestions.join(', ') : '分析中'}
+関連キーワード: ${Array.isArray(searchAnalysis.relatedKeywords) ? searchAnalysis.relatedKeywords.join(', ') : '分析中'}
+競合トップ結果: ${Array.isArray(searchAnalysis.competitorAnalysis?.topResults) ? searchAnalysis.competitorAnalysis.topResults.map(r => r.title).join(', ') : '分析中'}
 
 上記の検索分析データを基に、以下を簡潔にまとめてください：
 1. 検索意図:
@@ -265,8 +265,12 @@ export async function createArticleOutlineWithInstructions(
 }
 
 export async function writeArticle(outline: ArticleOutline, targetLength: number, tone: Tone, audience: Audience): Promise<string> {
-    const sectionsText = outline.sections.map(s => `## ${s.heading}\n${s.content}`).join('\n\n');
-    const faqText = outline.faq.map(f => `- Q: ${f.question}\n- A: ${f.answer}`).join('\n');
+    // 配列のnull/undefinedチェック
+    const sections = Array.isArray(outline.sections) ? outline.sections : [];
+    const faq = Array.isArray(outline.faq) ? outline.faq : [];
+    
+    const sectionsText = sections.map(s => `## ${s.heading}\n${s.content}`).join('\n\n');
+    const faqText = faq.map(f => `- Q: ${f.question}\n- A: ${f.answer}`).join('\n');
 
     const prompt = `構成: ${outline.title}
 導入: ${outline.introduction}

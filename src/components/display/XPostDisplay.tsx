@@ -16,7 +16,7 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
   };
 
   const handleCopyAllShort = () => {
-    const allShort = xPosts.shortPosts
+    const allShort = (xPosts.shortPosts || [])
       .map((post, i) => `【パターン${i + 1}: ${post.target}】\n${post.text}`)
       .join('\n\n---\n\n');
     navigator.clipboard.writeText(allShort).then(() => {
@@ -26,7 +26,7 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
   };
 
   const handleCopyAllLong = () => {
-    const allLong = xPosts.longPosts
+    const allLong = (xPosts.longPosts || [])
       .map((post, i) => `【パターン${i + 1}: ${post.target}】\n${post.text}`)
       .join('\n\n---\n\n');
     navigator.clipboard.writeText(allLong).then(() => {
@@ -36,10 +36,10 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
   };
 
   const handleCopyThread = (threadId: string) => {
-    const thread = xPosts.threads.find(t => t.id === threadId);
+    const thread = (xPosts.threads || []).find(t => t.id === threadId);
     if (thread) {
-      const threadText = thread.tweets
-        .map((tweet, i) => `【${i + 1}/${thread.tweets.length}】\n${tweet}`)
+      const threadText = (thread.tweets || [])
+        .map((tweet, i) => `【${i + 1}/${(thread.tweets || []).length}】\n${tweet}`)
         .join('\n\n---\n\n');
       navigator.clipboard.writeText(threadText).then(() => {
         setCopiedId(threadId);
@@ -75,7 +75,7 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {xPosts.shortPosts.map((post) => (
+          {(xPosts.shortPosts || []).map((post) => (
             <div
               key={post.id}
               className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
@@ -95,7 +95,7 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
               
               {post.hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {post.hashtags.map((tag, i) => (
+                  {(post.hashtags || []).map((tag, i) => (
                     <span key={i} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
                       {tag}
                     </span>
@@ -145,7 +145,7 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
         </div>
         
         <div className="space-y-4">
-          {xPosts.longPosts.map((post) => (
+          {(xPosts.longPosts || []).map((post) => (
             <div
               key={post.id}
               className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
@@ -169,7 +169,7 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
               
               {post.hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {post.hashtags.map((tag, i) => (
+                  {(post.hashtags || []).map((tag, i) => (
                     <span key={i} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
                       {tag}
                     </span>
@@ -211,7 +211,7 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
         </h3>
         
         <div className="space-y-6">
-          {xPosts.threads.map((thread) => (
+          {(xPosts.threads || []).map((thread) => (
             <div
               key={thread.id}
               className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
@@ -234,10 +234,10 @@ const XPostDisplay: React.FC<XPostDisplayProps> = ({ xPosts }) => {
               </div>
               
               <div className="space-y-3">
-                {thread.tweets.map((tweet, index) => (
+                {(thread.tweets || []).map((tweet, index) => (
                   <div key={index} className="relative pl-8 pb-3">
                     {/* 連続線 */}
-                    {index < thread.tweets.length - 1 && (
+                    {index < (thread.tweets || []).length - 1 && (
                       <div className="absolute left-3 top-8 bottom-0 w-0.5 bg-blue-200"></div>
                     )}
                     
