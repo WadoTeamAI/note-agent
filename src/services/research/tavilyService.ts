@@ -17,11 +17,11 @@ import {
 
 // 環境変数からAPIキーを取得
 function getTavilyApiKey(): string | null {
-  return process.env.TAVILY_API_KEY || null;
+  return process.env.NEXT_PUBLIC_TAVILY_API_KEY || process.env.TAVILY_API_KEY || null;
 }
 
 function getGeminiApiKey(): string {
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
   if (!apiKey) {
     throw new Error('Gemini APIキーが設定されていません');
   }
