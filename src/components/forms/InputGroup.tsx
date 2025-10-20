@@ -50,7 +50,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
                         type={type}
                         id={id}
                         name={id}
-                        value={value as string | number}
+                        value={typeof value === 'number' && isNaN(value) ? '' : value as string | number}
                         onChange={onChange}
                         placeholder={placeholder}
                         required={required}

@@ -198,7 +198,32 @@ export async function createArticleOutline(analysis: string, audience: Audience,
     const prompt = `SEO分析: ${analysis}
 キーワード: ${keyword} | 読者: ${audience} | 文体: ${tone}
 
-JSON形式で記事構成を作成（体験談・事例・エピソードを含む見出し構成にすること）:`;
+以下のJSON形式で記事構成を作成してください（体験談・事例・エピソードを含む見出し構成にすること）:
+
+{
+  "title": "記事タイトル（キーワードを含む）",
+  "metaDescription": "SEO効果的なメタディスクリプション（120文字以内、キーワード含む）",
+  "introduction": "導入文",
+  "sections": [
+    {
+      "heading": "見出し",
+      "content": "内容の概要"
+    }
+  ],
+  "faq": [
+    {
+      "question": "よくある質問",
+      "answer": "回答"
+    }
+  ]
+}
+
+必須要件:
+- metaDescriptionは必ず120文字以内で、キーワードを自然に含めること
+- titleはSEOに効果的で読者の関心を引くもの
+- sectionsは体験談・事例を含む構成にすること
+- 年数表記は必ず${new Date().getFullYear()}年（現在年）を使用すること
+- 古い年数（2024年以前）は使用禁止`;
 
     const response = await withRetry(async () => {
         return await ai.models.generateContent({
@@ -237,13 +262,34 @@ export async function createArticleOutlineWithInstructions(
 
 上記の特別指示に従って、SEO分析結果を基に記事構成案を作成してください。
 
-要件:
+以下のJSON形式で出力してください:
+
+{
+  "title": "記事タイトル（キーワードを含む）",
+  "metaDescription": "SEO効果的なメタディスクリプション（120文字以内、キーワード含む）",
+  "introduction": "導入文",
+  "sections": [
+    {
+      "heading": "見出し",
+      "content": "内容の概要"
+    }
+  ],
+  "faq": [
+    {
+      "question": "よくある質問",
+      "answer": "回答"
+    }
+  ]
+}
+
+必須要件:
 1. SEOキーワードを自然に組み込む
 2. 読者のニーズを満たす内容構成
 3. 特別指示の要件を満たす構成
 4. FAQは3-5個程度
-
-出力形式: JSON`;
+5. metaDescriptionは必ず120文字以内で、キーワードを自然に含めること
+6. 年数表記は必ず${new Date().getFullYear()}年（現在年）を使用すること
+7. 古い年数（2024年以前）は使用禁止`;
 
     return await withRetry(async () => {
         const response = await ai.models.generateContent({
@@ -272,21 +318,41 @@ export async function writeArticle(outline: ArticleOutline, targetLength: number
     const sectionsText = sections.map(s => `## ${s.heading}\n${s.content}`).join('\n\n');
     const faqText = faq.map(f => `- Q: ${f.question}\n- A: ${f.answer}`).join('\n');
 
-    const prompt = `構成: ${outline.title}
-導入: ${outline.introduction}
+    // 現在の年を取得（2025年を正確に反映）
+    const currentYear = new Date().getFullYear();
+
+    // 文字数に応じた詳細な指示を作成
+    const lengthGuidance = targetLength <= 3000 ? 
+        '簡潔で要点を絞った内容で、各セクションは200-400文字程度で構成' :
+        targetLength <= 6000 ?
+        '中程度の詳細度で、各セクションは300-600文字程度で構成、具体例を含む' :
+        '詳細で充実した内容で、各セクションは500-800文字程度で構成、多くの例や解説を含む';
+
+    const prompt = `以下の構成を基に、正確に${targetLength}文字のMarkdown記事を執筆してください。
+
+記事構成:
+タイトル: ${outline.title}
+導入文: ${outline.introduction}
 本文: ${sectionsText}
 FAQ: ${faqText}
 
-条件: ${targetLength}文字、${audience}、${tone}
+執筆条件:
+- 文字数: 厳密に${targetLength}文字（±50文字以内）
+- 対象読者: ${audience}
+- 文体: ${tone}
+- 現在の年: ${currentYear}年
+- 文字数配分: ${lengthGuidance}
 
-重要：以下のルールを必ず守ってMarkdown記事を作成
+必須ルール:
 - 自然な日本語（「〜することができます」等の翻訳調表現禁止）
+- 現在の年は${currentYear}年として、適切な時期の情報を記載すること
 - 必須：以下のような具体的な体験談を1箇所以上挿入
   例1：「私自身も初めて○○に挑戦した時、△△で躓いてしまい、思わぬ時間を費やしてしまいました。」
   例2：「友人から聞いた話ですが、□□を始めた当初は××で困ってしまったそうです。」
   例3：「以前職場で○○の案件を担当した際、△△という課題に直面し、試行錯誤の結果...」
 - 人間味：完璧すぎない表現、少しの「ゆらぎ」を含む
-- 親近感：読者との距離を縮める表現（「実は...」「正直なところ...」等）`;
+- 親近感：読者との距離を縮める表現（「実は...」「正直なところ...」等）
+- 目標文字数${targetLength}文字を必ず達成してください（見出しマークダウン記号を除く文字数）`;
 
     return await withRetry(async () => {
         const response = await ai.models.generateContent({

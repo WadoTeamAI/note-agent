@@ -42,13 +42,13 @@ export async function searchWithTavily(query: string): Promise<TavilySearchResul
   }
 
   try {
-    const response = await fetch(TAVILY_API_URL, {
+    // Next.js API Routeを使用してCORS問題を回避
+    const response = await fetch('/api/tavily-search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        api_key: apiKey,
         query: query,
         search_depth: 'advanced',
         include_answer: true,
