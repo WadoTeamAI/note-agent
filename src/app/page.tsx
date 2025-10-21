@@ -118,8 +118,7 @@ export default function HomePage() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const generateArticle = async (dataToUse: FormData) => {
         setIsLoading(true);
         setError(null);
         setOutput(null);
@@ -129,38 +128,38 @@ export default function HomePage() {
         try {
             // Step 1: SEO分析
             setCurrentStep(ProcessStep.ANALYZING);
-            const analysis = await geminiService.analyzeSerpResults(formData.keyword);
+            const analysis = await geminiService.analyzeSerpResults(dataToUse.keyword);
 
             // Step 2: 記事構成生成
             setCurrentStep(ProcessStep.OUTLINING);
-            const outline = await geminiService.createArticleOutline(analysis, formData.audience, formData.tone, formData.keyword);
+            const outline = await geminiService.createArticleOutline(analysis, dataToUse.audience, dataToUse.tone, dataToUse.keyword);
 
             // Step 3: 本文生成
             setCurrentStep(ProcessStep.WRITING);
-            const markdownContent = await geminiService.writeArticle(outline, formData.targetLength, formData.tone, formData.audience);
+            const markdownContent = await geminiService.writeArticle(outline, dataToUse.targetLength, dataToUse.tone, dataToUse.audience);
 
             // Step 4: ファクトチェック
             setCurrentStep(ProcessStep.FACT_CHECKING);
-            const claims = await extractClaims(markdownContent, formData.keyword);
+            const claims = await extractClaims(markdownContent, dataToUse.keyword);
             const factCheckSummary = await performFactCheck({
                 articleContent: markdownContent,
                 claims: claims,
-                keyword: formData.keyword,
+                keyword: dataToUse.keyword,
             });
             
             // Step 5: 画像生成
             setCurrentStep(ProcessStep.GENERATING_IMAGE);
-            const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, formData.imageTheme);
+            const imagePrompt = await geminiService.createImagePrompt(outline.title, markdownContent, dataToUse.imageTheme);
             const imageUrl = await geminiService.generateImage(imagePrompt);
             setCurrentGeneratedImage(imageUrl);
 
             // Step 6: X告知文生成
             setCurrentStep(ProcessStep.GENERATING_X_POSTS);
             const xPosts = await generateXPosts({
-                keyword: formData.keyword,
+                keyword: dataToUse.keyword,
                 articleTitle: outline.title,
                 articleSummary: outline.metaDescription,
-                tone: formData.tone,
+                tone: dataToUse.tone,
                 targetAudiences: ['初心者', '中級者', 'ビジネスパーソン', '主婦・主夫', '学生'],
             });
 
@@ -185,6 +184,11 @@ export default function HomePage() {
         }
     };
 
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        await generateArticle(formData);
+    };
+
     const handleVoiceIdeaProcessed = (voiceFormData: Partial<FormData>) => {
         // 音声アイデアの結果をフォームに反映
         setFormData(prev => ({
@@ -196,6 +200,20 @@ export default function HomePage() {
         
         // 音声アイデアが処理されたことを表示
         console.log('音声アイデアが適用されました:', voiceFormData);
+    };
+
+    const handleVoiceGenerationStart = async (voiceFormData: Partial<FormData>) => {
+        // フォームデータを更新してから記事生成を開始
+        const updatedFormData = {
+            ...formData,
+            ...voiceFormData
+        };
+        
+        // フォームデータを状態に反映
+        setFormData(updatedFormData);
+        
+        // 記事生成を開始
+        await generateArticle(updatedFormData);
     };
 
     return (
@@ -347,6 +365,7 @@ export default function HomePage() {
                 isVisible={showVoiceProcessor}
                 onClose={() => setShowVoiceProcessor(false)}
                 onIdeaProcessed={handleVoiceIdeaProcessed}
+                onStartGeneration={handleVoiceGenerationStart}
             />
         </div>
     );

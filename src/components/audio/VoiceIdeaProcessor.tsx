@@ -12,12 +12,14 @@ import { FormData, Tone, Audience } from '../../types';
 
 interface VoiceIdeaProcessorProps {
   onIdeaProcessed: (formData: Partial<FormData>) => void;
+  onStartGeneration?: (formData: Partial<FormData>) => void;
   isVisible: boolean;
   onClose: () => void;
 }
 
 export const VoiceIdeaProcessor: React.FC<VoiceIdeaProcessorProps> = ({
   onIdeaProcessed,
+  onStartGeneration,
   isVisible,
   onClose
 }) => {
@@ -81,7 +83,14 @@ export const VoiceIdeaProcessor: React.FC<VoiceIdeaProcessorProps> = ({
       imageTheme: '記事内容に適した画像'
     };
 
+    // フォームデータを更新してから記事生成を開始
     onIdeaProcessed(formData);
+    
+    // 記事生成を自動開始
+    if (onStartGeneration) {
+      onStartGeneration(formData);
+    }
+    
     handleClose();
   };
 

@@ -35,7 +35,8 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
     };
 
     const handleCopyMeta = () => {
-        navigator.clipboard.writeText(output.metaDescription).then(() => {
+        const metaDescription = output.metaDescription || '';
+        navigator.clipboard.writeText(metaDescription).then(() => {
             setCopiedMeta(true);
             setTimeout(() => setCopiedMeta(false), 2000);
         });
@@ -138,7 +139,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ output }) => {
                     </button>
                 </div>
                 <div className="backdrop-blur-sm bg-white/60 p-4 rounded-xl border border-white/20 text-gray-700 leading-relaxed">
-                    {output.metaDescription}
+                    {output.metaDescription || 'メタディスクリプションが生成されていません'}
                 </div>
             </div>
 
