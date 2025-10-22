@@ -1,24 +1,1174 @@
-# note記事自動生成エージェント【実装編②】講義資料
+# 📚 note記事自動生成エージェント【実装編②】講義資料
 
-> **開催日時**: 2025年10月22日 21:30-22:30 (60分)  
-> **テーマ**: アーキテクチャ深掘り・開発効率化ノウハウ・実装パターン
-
----
-
-## 📋 目次
-
-1. [プロジェクト概要](#1-プロジェクト概要)
-2. [アーキテクチャ](#2-アーキテクチャ)
-3. [技術スタック](#3-技術スタック)
-4. [ディレクトリ構造](#4-ディレクトリ構造)
-5. [開発効率化ノウハウ](#5-開発効率化ノウハウ)
-6. [実装パターン](#6-実装パターン)
-7. [デプロイ・運用](#7-デプロイ運用)
-8. [実装ハンズオン](#8-実装ハンズオン)
+> **📅 開催**: 2025年10月22日 21:30-22:30 (60分)  
+> **🎯 テーマ**: アーキテクチャ深掘り・Claude Code活用・実装ノウハウ  
+> **👥 対象**: 中級〜上級開発者向け
 
 ---
 
-## 1. プロジェクト概要
+## 📖 講義概要
+
+### 🎯 学習目標
+- **アーキテクチャ理解**: Next.js 14 + Claude Code での効率的開発手法
+- **実装ノウハウ**: 型安全性・コンポーネント設計・GitHub連携
+- **実践スキル**: ライブコーディング・デバッグ・運用最適化
+
+### ⏰ タイムテーブル
+| 時間 | 内容 | 詳細 |
+|------|------|------|
+| 21:30-21:40 | **導入** | プロジェクト概要・Phase 1.5成果 |
+| 21:40-21:55 | **Claude Code活用術** | 実践的プロンプト・効率化テクニック |
+| 21:55-22:10 | **アーキテクチャ解説** | 設計思想・技術選定理由 |
+| 22:10-22:25 | **実装パターン紹介** | コード例・ベストプラクティス |
+| 22:25-22:30 | **Q&A・次回予告** | 質問対応・フォローアップ |
+
+---
+
+## 1️⃣ プロジェクト概要 & Phase 1.5 成果
+
+### 📊 プロジェクト基本情報
+
+**🎯 目的**: SEOに強く・読まれるnote記事の自動生成  
+**🎨 特徴**: AIっぽくない自然な日本語表現  
+**🔄 範囲**: 構成→執筆→画像→SNS の一気通貫自動化  
+
+### ✅ Phase 1.5 完了成果
+
+| 機能 | 説明 | 技術要素 |
+|------|------|----------|
+| **統合リサーチ** | Google Search + note分析 + SNSトレンド | Tavily API, 並列処理 |
+| **音声入力対応** | Web Speech API でアイディア入力 | ブラウザAPI, リアルタイム処理 |
+| **A/Bテスト機能** | 複数バージョン生成・比較・最適化 | メトリクス計測, 統計分析 |
+| **Next.js 14移行** | App Router + SSR最適化 | 段階的移行, パフォーマンス向上 |
+
+---
+
+## 2️⃣ Claude Code 活用術（実演中心）
+
+### 🤖 Claude Code とは
+- **AI開発アシスタント**: コード生成・解析・最適化を支援
+- **自然言語インターフェース**: 日本語での指示でコード作成
+- **コンテキスト理解**: プロジェクト全体を把握した提案
+
+### 💡 実践的プロンプト例
+
+#### ✨ コード生成プロンプト
+```
+Next.js 14のApp Routerを使って、記事生成の進捗を表示する
+StepIndicatorコンポーネントを作成してください。
+
+要件:
+- TypeScriptで型安全に実装
+- Tailwind CSSでモダンなUI
+- 各ステップにアニメーション効果
+- レスポンシブ対応
+- 以下のProcessStep enumに対応
+
+enum ProcessStep {
+  IDLE = 'IDLE',
+  RESEARCH = '統合リサーチ中...',
+  ANALYZING = 'SEO分析中...',
+  WRITING = '記事本文の執筆中...',
+  GENERATING_IMAGE = '画像生成中...',
+  DONE = '完了'
+}
+```
+
+#### 🐛 バグ修正プロンプト
+```
+以下のReactコンポーネントでエラーが発生しています。
+原因を特定し、修正案を提示してください:
+
+[エラーコード貼り付け]
+
+エラーメッセージ:
+TypeError: Cannot read properties of undefined (reading 'map')
+
+コンポーネントの意図した動作と、
+このエラーを防ぐためのベストプラクティスも教えてください。
+```
+
+#### ⚡ パフォーマンス最適化プロンプト
+```
+現在のNext.jsアプリのパフォーマンスを改善したいです。
+以下の課題を解決する具体的な方法を教えてください:
+
+1. 初期読み込みが3秒以上かかる
+2. 画像の表示が遅い  
+3. バンドルサイズが500KB超過
+
+現在の構成:
+- Next.js 14 App Router
+- TypeScript
+- Tailwind CSS
+- 外部API: Gemini AI, Supabase
+```
+
+### 🔄 Claude Code 開発ワークフロー
+
+```
+開発フロー
+├── 1. 機能要件をClaude Codeに相談
+├── 2. 型定義・インターフェース設計
+├── 3. コンポーネント・サービス実装
+├── 4. テストコード生成
+├── 5. バグ修正・リファクタリング
+├── 6. パフォーマンス最適化
+└── 7. ドキュメント生成
+```
+
+---
+
+## 3️⃣ アーキテクチャ深掘り
+
+### 🏗️ 設計思想
+
+#### 🎯 設計原則
+1. **単一責任の原則**: 1コンポーネント = 1責任
+2. **開放閉鎖の原則**: 拡張に開き、修正に閉じる
+3. **依存性逆転の原則**: 抽象に依存する
+4. **関心の分離**: UI ↔ ビジネスロジック ↔ データ
+
+#### 🧩 レイヤー構造
+```
+📱 Presentation Layer (UI)
+├── app/ - Next.js App Router
+├── components/ - React Components  
+└── hooks/ - Custom Hooks
+
+🧠 Business Logic Layer
+├── services/ - ビジネスロジック
+├── utils/ - ヘルパー関数
+└── contexts/ - 状態管理
+
+🗄️ Data Access Layer  
+├── api/ - 外部API統合
+├── database/ - DB操作
+└── storage/ - ローカルストレージ
+
+🔧 Infrastructure Layer
+├── config/ - 設定管理
+├── types/ - 型定義
+└── constants/ - 定数定義
+```
+
+### 🎨 フロントエンド構成
+
+#### Next.js 14 App Router
+```typescript
+// app/layout.tsx - ルートレイアウト
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="ja">
+      <body>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
+      </body>
+    </html>
+  )
+}
+
+// app/page.tsx - メインページ
+'use client';
+export default function HomePage() {
+  const { state, generateArticle } = useArticleGeneration();
+  
+  return (
+    <div className="container mx-auto px-4">
+      <InputForm onSubmit={generateArticle} />
+      <StepIndicator currentStep={state.currentStep} />
+      <OutputDisplay output={state.output} />
+    </div>
+  );
+}
+```
+
+#### SSR/CSR最適化パターン
+```typescript
+// Dynamic Import for Client-side Components
+const VoiceIdeaProcessor = dynamic(
+  () => import('@/components/audio/VoiceIdeaProcessor'),
+  { 
+    ssr: false,
+    loading: () => <div>音声機能を読み込み中...</div>
+  }
+);
+
+// Client Providers分離
+'use client';
+export function ClientProviders({ children }: ProvidersProps) {
+  return (
+    <ThemeProvider>
+      <AudioProvider>
+        {children}
+      </AudioProvider>
+    </ThemeProvider>
+  );
+}
+```
+
+### 🧠 サービス層設計
+
+#### Gemini AI統合パターン
+```typescript
+// services/ai/geminiService.ts
+import { GoogleGenAI } from "@google/genai";
+
+class GeminiService {
+  private genAI: GoogleGenAI;
+  
+  constructor(apiKey: string) {
+    this.genAI = new GoogleGenAI(apiKey);
+  }
+
+  async createArticleOutline(
+    keyword: string,
+    tone: Tone,
+    audience: Audience
+  ): Promise<ArticleOutline> {
+    const model = this.genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash" 
+    });
+    
+    const prompt = this.buildOutlinePrompt(keyword, tone, audience);
+    
+    return await this.withRetry(async () => {
+      const result = await model.generateContent(prompt);
+      return this.parseOutlineResponse(result.response.text());
+    });
+  }
+
+  private async withRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3
+  ): Promise<T> {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        if (attempt === maxRetries) throw error;
+        await this.delay(1000 * Math.pow(2, attempt));
+      }
+    }
+    throw new Error('Max retries exceeded');
+  }
+}
+```
+
+---
+
+## 4️⃣ 実装パターン & ベストプラクティス
+
+### 🎪 AIワークフロー実装
+
+#### ステップ管理パターン
+```typescript
+// 状態管理
+enum ProcessStep {
+  IDLE = 'IDLE',
+  RESEARCH = '統合リサーチ中...',
+  ANALYZING = 'SEO分析中...',
+  WRITING = '記事本文の執筆中...',
+  GENERATING_IMAGE = '画像生成中...',
+  GENERATING_X_POSTS = 'X告知文生成中...',
+  DONE = '完了',
+  ERROR = 'エラー'
+}
+
+interface GenerationState {
+  currentStep: ProcessStep;
+  isGenerating: boolean;
+  progress: number;
+  output: FinalOutput | null;
+  error: string | null;
+}
+
+// Custom Hook
+function useArticleGeneration() {
+  const [state, setState] = useState<GenerationState>(initialState);
+
+  const generateArticle = useCallback(async (formData: FormData) => {
+    setState(prev => ({ ...prev, isGenerating: true }));
+    
+    try {
+      // Step 1: Research
+      setState(prev => ({ ...prev, currentStep: ProcessStep.RESEARCH }));
+      const research = await performResearch(formData.keyword);
+      
+      // Step 2: Analysis
+      setState(prev => ({ ...prev, currentStep: ProcessStep.ANALYZING }));
+      const analysis = await analyzeSEO(research);
+      
+      // Step 3: Writing
+      setState(prev => ({ ...prev, currentStep: ProcessStep.WRITING }));
+      const article = await writeArticle(analysis, formData);
+      
+      // Step 4: Image Generation
+      setState(prev => ({ ...prev, currentStep: ProcessStep.GENERATING_IMAGE }));
+      const image = await generateImage(article, formData.imageTheme);
+      
+      // Final Result
+      setState(prev => ({ 
+        ...prev, 
+        currentStep: ProcessStep.DONE,
+        output: { article, image, analysis }
+      }));
+      
+    } catch (error) {
+      setState(prev => ({ 
+        ...prev, 
+        currentStep: ProcessStep.ERROR,
+        error: error.message 
+      }));
+    } finally {
+      setState(prev => ({ ...prev, isGenerating: false }));
+    }
+  }, []);
+
+  return { state, generateArticle };
+}
+```
+
+### 🎵 音声入力実装パターン
+
+```typescript
+// services/audio/speechRecognitionService.ts
+export class SpeechRecognitionService {
+  private recognition: SpeechRecognition | null = null;
+  private isListening = false;
+
+  constructor() {
+    if (this.isSpeechRecognitionSupported()) {
+      this.setupRecognition();
+    }
+  }
+
+  private isSpeechRecognitionSupported(): boolean {
+    return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+  }
+
+  private setupRecognition(): void {
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    this.recognition = new SpeechRecognition();
+    
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'ja-JP';
+    this.recognition.maxAlternatives = 1;
+  }
+
+  async startListening(
+    onResult: (text: string, isFinal: boolean) => void,
+    onError?: (error: string) => void
+  ): Promise<void> {
+    if (!this.recognition) {
+      throw new Error('音声認識がサポートされていません');
+    }
+
+    if (this.isListening) {
+      return;
+    }
+
+    this.isListening = true;
+
+    this.recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        onResult(finalTranscript, true);
+      } else if (interimTranscript) {
+        onResult(interimTranscript, false);
+      }
+    };
+
+    this.recognition.onerror = (event) => {
+      this.isListening = false;
+      onError?.(event.error);
+    };
+
+    this.recognition.onend = () => {
+      this.isListening = false;
+    };
+
+    this.recognition.start();
+  }
+
+  stopListening(): void {
+    if (this.recognition && this.isListening) {
+      this.recognition.stop();
+      this.isListening = false;
+    }
+  }
+}
+
+// components/audio/VoiceIdeaProcessor.tsx
+export function VoiceIdeaProcessor({ onIdeaGenerated }: Props) {
+  const [isSupported, setIsSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const speechService = useRef(new SpeechRecognitionService());
+
+  useEffect(() => {
+    setIsSupported(speechService.current.isSupported());
+  }, []);
+
+  const handleStartListening = async () => {
+    try {
+      setIsListening(true);
+      setTranscript('');
+      
+      await speechService.current.startListening(
+        (text, isFinal) => {
+          setTranscript(prev => isFinal ? prev + text + ' ' : text);
+        },
+        (error) => {
+          console.error('音声認識エラー:', error);
+          setIsListening(false);
+        }
+      );
+    } catch (error) {
+      console.error('音声入力開始エラー:', error);
+      setIsListening(false);
+    }
+  };
+
+  const handleStopListening = () => {
+    speechService.current.stopListening();
+    setIsListening(false);
+    
+    if (transcript.trim()) {
+      onIdeaGenerated(transcript.trim());
+    }
+  };
+
+  if (!isSupported) {
+    return (
+      <div className="voice-not-supported">
+        <p>音声認識に対応していないブラウザです</p>
+        <p>Chrome、Edge、Safariをご利用ください</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="voice-processor">
+      <button
+        onClick={isListening ? handleStopListening : handleStartListening}
+        className={`voice-button ${isListening ? 'listening' : ''}`}
+      >
+        {isListening ? '🔴 停止' : '🎤 音声入力'}
+      </button>
+      
+      {transcript && (
+        <div className="transcript">
+          <p>認識中: {transcript}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### 📊 A/Bテスト実装パターン
+
+```typescript
+// services/abtest/abtestService.ts
+interface ABTestVariant {
+  approach: 'data-driven' | 'story-driven' | 'problem-solving';
+  tone: 'analytical' | 'personal' | 'practical';
+}
+
+export async function generateABTestVersions(
+  formData: FormData,
+  variantCount: number = 2
+): Promise<ABTestResult[]> {
+  const variants: ABTestVariant[] = [
+    { approach: 'data-driven', tone: 'analytical' },
+    { approach: 'story-driven', tone: 'personal' },
+    { approach: 'problem-solving', tone: 'practical' }
+  ];
+
+  const results: ABTestResult[] = [];
+
+  for (let i = 0; i < variantCount; i++) {
+    const variant = variants[i % variants.length];
+    
+    const modifiedFormData = {
+      ...formData,
+      additionalInstructions: `
+        ${variant.approach}アプローチで、${variant.tone}なトーンで執筆してください。
+        
+        ${variant.approach === 'data-driven' ? 
+          '統計データや具体的な数値を重視し、論理的な構成で' :
+          variant.approach === 'story-driven' ?
+          '個人的な体験談やストーリーを中心に、感情に訴える形で' :
+          '問題提起から解決策提示まで、実践的なアクション重視で'
+        }
+      `
+    };
+
+    const result = await generateSingleVersion(modifiedFormData, `Version ${i + 1}`);
+    results.push(result);
+  }
+
+  return results;
+}
+
+// メトリクス計算
+interface ABTestMetrics {
+  readabilityScore: number;
+  seoScore: number;
+  engagementPrediction: number;
+  keywordDensity: number;
+  uniquenessScore: number;
+}
+
+async function calculateMetrics(
+  content: string, 
+  keyword: string
+): Promise<ABTestMetrics> {
+  return {
+    readabilityScore: calculateReadabilityScore(content),
+    seoScore: calculateSEOScore(content, keyword),
+    engagementPrediction: await predictEngagement(content),
+    keywordDensity: calculateKeywordDensity(content, keyword),
+    uniquenessScore: calculateUniquenessScore(content)
+  };
+}
+
+function calculateReadabilityScore(content: string): number {
+  const sentences = content.split(/[。！？]/).length - 1;
+  const words = content.length;
+  const avgWordsPerSentence = words / sentences;
+  
+  // 日本語の場合、1文あたり20-30文字が読みやすい
+  if (avgWordsPerSentence >= 20 && avgWordsPerSentence <= 30) {
+    return 0.9;
+  } else if (avgWordsPerSentence >= 15 && avgWordsPerSentence <= 35) {
+    return 0.7;
+  } else {
+    return 0.5;
+  }
+}
+```
+
+---
+
+## 5️⃣ GitHub連携ワークフロー
+
+### 🌿 ブランチ戦略
+
+#### Git Flow採用
+```
+main (本番環境)
+├── develop (開発環境)
+│   ├── feature/voice-input-enhancement
+│   ├── feature/abtest-analytics
+│   ├── feature/lecture-materials
+│   └── feature/performance-optimization
+└── hotfix/security-patch
+```
+
+#### 実際のワークフロー
+```bash
+# 1. developから新機能ブランチ作成
+git checkout develop
+git pull origin develop
+git checkout -b feature/new-functionality
+
+# 2. 機能開発・コミット
+git add .
+git commit -m "feat: 新機能実装
+
+- コンポーネント追加
+- 型定義更新
+- テスト追加
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# 3. プッシュ・プルリクエスト
+git push -u origin feature/new-functionality
+# GitHub UIでPR作成
+
+# 4. レビュー後マージ
+# 5. developからmainへのリリース
+```
+
+### 📝 コミット規約
+
+#### Conventional Commits準拠
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+#### 実用例
+```bash
+feat(audio): Web Speech API音声入力機能を追加
+
+- VoiceIdeaProcessorコンポーネント実装
+- ブラウザ互換性チェック機能
+- リアルタイム文字起こし対応
+- エラーハンドリング強化
+
+Closes #123
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### 🚀 CI/CD パイプライン
+
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type checking
+        run: npm run type-check
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: E2E tests
+        run: npm run test:e2e
+
+      - name: Build check
+        run: npm run build
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
+```
+
+---
+
+## 6️⃣ デバッグ & パフォーマンス最適化
+
+### 🐛 効果的なデバッグ手法
+
+#### 段階的デバッグアプローチ
+```typescript
+// デバッグヘルパー
+export class DebugHelper {
+  static logStep(step: string, data?: any): void {
+    if (process.env.NODE_ENV === 'development') {
+      console.group(`🔍 Debug: ${step}`);
+      if (data) {
+        console.log('Data:', data);
+        console.log('Type:', typeof data);
+        console.log('Keys:', Object.keys(data));
+      }
+      console.trace('Call stack');
+      console.groupEnd();
+    }
+  }
+
+  static measurePerformance<T>(
+    label: string, 
+    fn: () => T
+  ): T {
+    if (process.env.NODE_ENV === 'development') {
+      console.time(label);
+      const result = fn();
+      console.timeEnd(label);
+      return result;
+    }
+    return fn();
+  }
+
+  static logApiCall(
+    url: string, 
+    params: any, 
+    response: any
+  ): void {
+    if (process.env.NODE_ENV === 'development') {
+      console.group(`🌐 API Call: ${url}`);
+      console.log('Request params:', params);
+      console.log('Response:', response);
+      console.log('Status:', response.status || 'N/A');
+      console.groupEnd();
+    }
+  }
+}
+
+// 実際の使用例
+async function generateArticle(formData: FormData) {
+  DebugHelper.logStep('Article generation started', formData);
+  
+  try {
+    const outline = await DebugHelper.measurePerformance(
+      'Outline generation',
+      () => createArticleOutline(formData.keyword, formData.tone, formData.audience)
+    );
+    
+    DebugHelper.logStep('Outline created', outline);
+    
+    const article = await writeArticle(outline, formData.targetLength);
+    DebugHelper.logStep('Article completed', { length: article.length });
+    
+    return article;
+  } catch (error) {
+    DebugHelper.logStep('Error occurred', error);
+    throw error;
+  }
+}
+```
+
+### ⚡ パフォーマンス最適化
+
+#### コード分割戦略
+```typescript
+// 1. Route-based splitting (自動)
+// Next.js App Routerが自動で各ページを分割
+
+// 2. Component-based splitting
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+const AnalyticsComponent = lazy(() => import('./AnalyticsComponent'));
+
+function App() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <HeavyComponent />
+      <AnalyticsComponent />
+    </Suspense>
+  );
+}
+
+// 3. Library splitting (webpack設定)
+// next.config.js
+module.exports = {
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          gemini: {
+            test: /[\\/]node_modules[\\/]@google[\\/]genai/,
+            name: 'gemini',
+            chunks: 'all',
+          }
+        }
+      };
+    }
+    return config;
+  }
+};
+```
+
+#### メモ化最適化
+```typescript
+// 重い計算のメモ化
+const ExpensiveComponent = memo(function ExpensiveComponent({ 
+  data, 
+  onAction 
+}: Props) {
+  // 重い計算をメモ化
+  const expensiveValue = useMemo(() => {
+    return computeComplexValue(data);
+  }, [data]);
+
+  // コールバックをメモ化
+  const handleAction = useCallback((id: string) => {
+    onAction(id);
+  }, [onAction]);
+
+  return (
+    <div>
+      <div>Computed: {expensiveValue}</div>
+      <button onClick={() => handleAction('test')}>
+        Action
+      </button>
+    </div>
+  );
+});
+
+// 条件付きメモ化（カスタムフック）
+function useExpensiveCalculation(data: ComplexData) {
+  return useMemo(() => {
+    // データが複雑な場合のみメモ化
+    if (data.items.length > 100) {
+      return computeExpensiveValue(data);
+    }
+    return computeSimpleValue(data);
+  }, [data]);
+}
+```
+
+---
+
+## 7️⃣ 運用・監視戦略
+
+### 📊 エラー監視システム
+
+```typescript
+// Error Boundary実装
+class ErrorBoundary extends Component<
+  { children: ReactNode; fallback: ComponentType<{ error: Error }> },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // エラー追跡サービスに送信
+    this.logErrorToService(error, errorInfo);
+  }
+
+  private logErrorToService(error: Error, errorInfo: ErrorInfo) {
+    const errorDetails = {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href
+    };
+
+    // Sentryやその他のサービスに送信
+    if (window.Sentry) {
+      window.Sentry.captureException(error, {
+        extra: errorDetails
+      });
+    }
+
+    // 自前のログシステムに送信
+    fetch('/api/log-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(errorDetails)
+    }).catch(console.error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const FallbackComponent = this.props.fallback;
+      return <FallbackComponent error={this.state.error!} />;
+    }
+
+    return this.props.children;
+  }
+}
+
+// 使用例
+function App() {
+  return (
+    <ErrorBoundary fallback={ErrorFallback}>
+      <ArticleGenerator />
+    </ErrorBoundary>
+  );
+}
+
+function ErrorFallback({ error }: { error: Error }) {
+  return (
+    <div className="error-fallback">
+      <h2>申し訳ございません。エラーが発生しました。</h2>
+      <details>
+        <summary>技術的な詳細</summary>
+        <pre>{error.message}</pre>
+      </details>
+      <button onClick={() => window.location.reload()}>
+        ページを再読み込み
+      </button>
+    </div>
+  );
+}
+```
+
+### 📈 パフォーマンス監視
+
+```typescript
+// カスタムパフォーマンス監視
+export class PerformanceMonitor {
+  private static metrics = new Map<string, number[]>();
+
+  static measureAPICall<T>(
+    apiName: string,
+    apiCall: () => Promise<T>
+  ): Promise<T> {
+    const startTime = performance.now();
+    
+    return apiCall()
+      .then(result => {
+        const duration = performance.now() - startTime;
+        this.recordMetric(`api_${apiName}`, duration);
+        
+        // 長時間のAPI呼び出しを警告
+        if (duration > 10000) { // 10秒以上
+          console.warn(`Slow API call detected: ${apiName} took ${duration}ms`);
+        }
+        
+        return result;
+      })
+      .catch(error => {
+        const duration = performance.now() - startTime;
+        this.recordMetric(`api_${apiName}_error`, duration);
+        throw error;
+      });
+  }
+
+  static measureRender(componentName: string, renderFn: () => any) {
+    const startTime = performance.now();
+    const result = renderFn();
+    const duration = performance.now() - startTime;
+    
+    this.recordMetric(`render_${componentName}`, duration);
+    
+    // 重いレンダリングを警告
+    if (duration > 16) { // 16ms以上（60FPSを下回る）
+      console.warn(`Slow render detected: ${componentName} took ${duration}ms`);
+    }
+    
+    return result;
+  }
+
+  private static recordMetric(name: string, value: number) {
+    const values = this.metrics.get(name) || [];
+    values.push(value);
+    
+    // 最新100件のみ保持
+    if (values.length > 100) {
+      values.shift();
+    }
+    
+    this.metrics.set(name, values);
+  }
+
+  static getPerformanceReport(): Record<string, {
+    avg: number;
+    min: number;
+    max: number;
+    count: number;
+  }> {
+    const report: any = {};
+    
+    for (const [name, values] of this.metrics.entries()) {
+      report[name] = {
+        avg: values.reduce((a, b) => a + b, 0) / values.length,
+        min: Math.min(...values),
+        max: Math.max(...values),
+        count: values.length
+      };
+    }
+    
+    return report;
+  }
+}
+
+// React Profilerとの連携
+function PerformanceProfiler({ 
+  name, 
+  children 
+}: { 
+  name: string; 
+  children: ReactNode 
+}) {
+  const onRender = useCallback((
+    id: string,
+    phase: 'mount' | 'update',
+    actualDuration: number,
+    baseDuration: number,
+    startTime: number,
+    commitTime: number
+  ) => {
+    PerformanceMonitor.recordMetric(
+      `component_${id}_${phase}`,
+      actualDuration
+    );
+  }, []);
+
+  return (
+    <Profiler id={name} onRender={onRender}>
+      {children}
+    </Profiler>
+  );
+}
+```
+
+---
+
+## 8️⃣ 実践ハンズオン（ライブコーディング用）
+
+### 🎯 デモシナリオ
+
+#### 1. Claude Code活用実演（5分）
+```
+実演内容:
+1. 新機能要求をClaude Codeに投げる
+   「記事生成の進捗率を%で表示する機能を追加したい」
+
+2. 型定義から実装まで一気に生成
+   - ProgressBarコンポーネント
+   - 進捗計算ロジック
+   - アニメーション効果
+
+3. バグ修正デモ
+   - 意図的にエラーを発生させる
+   - Claude Codeで原因分析・修正案提示
+```
+
+#### 2. GitHub連携ワークフロー（5分）
+```bash
+# 実際のコマンド実行
+git checkout -b feature/progress-indicator
+# Claude Code生成コードをコミット
+git add .
+git commit -m "feat: 記事生成進捗表示機能を追加
+
+🤖 Generated with Claude Code"
+git push -u origin feature/progress-indicator
+# GitHub UIでPR作成画面を表示
+```
+
+#### 3. リアルタイム機能追加（10分）
+```typescript
+// ライブで実装するコンポーネント例
+interface ProgressIndicatorProps {
+  currentStep: ProcessStep;
+  totalSteps: number;
+  isGenerating: boolean;
+}
+
+export function ProgressIndicator({ 
+  currentStep, 
+  totalSteps, 
+  isGenerating 
+}: ProgressIndicatorProps) {
+  // Claude Codeと一緒に実装
+  const progress = calculateProgress(currentStep, totalSteps);
+  
+  return (
+    <div className="progress-container">
+      <div className="progress-bar">
+        <div 
+          className="progress-fill"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <span className="progress-text">
+        {isGenerating ? currentStep : '待機中'}
+      </span>
+    </div>
+  );
+}
+
+function calculateProgress(step: ProcessStep, total: number): number {
+  const stepIndex = Object.values(ProcessStep).indexOf(step);
+  return Math.round((stepIndex / total) * 100);
+}
+```
+
+### 💡 参加者向けチャレンジ
+
+```
+フォローアップ課題:
+□ 今回のリポジトリをfork
+□ 自分なりの機能を1つ追加（例: ダークモード、音声速度調整）
+□ GitHub Issuesで質問や改善提案を投稿
+□ Claude Codeを使った開発体験をシェア
+
+次回までの宿題:
+□ 実際にClaude Codeでコンポーネントを1つ作成
+□ パフォーマンス最適化を1つ実装
+□ エラーハンドリングを改善
+```
+
+---
+
+## 🔗 参考リンク & 継続学習
+
+### 📚 公式ドキュメント
+- [Next.js 14 Documentation](https://nextjs.org/docs)
+- [React 19 Documentation](https://react.dev/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Claude Code Documentation](https://claude.ai/code)
+
+### 🛠️ 開発ツール
+- [Vercel](https://vercel.com/) - デプロイメント
+- [Supabase](https://supabase.com/) - バックエンドサービス
+- [Sentry](https://sentry.io/) - エラー監視
+- [Lighthouse](https://developers.google.com/web/tools/lighthouse) - パフォーマンス監査
+
+### 🎓 継続学習リソース
+- [React Patterns](https://reactpatterns.com/) - Reactデザインパターン
+- [Web.dev](https://web.dev/) - Webパフォーマンス最適化
+- [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/) - TypeScript詳解
+- [Next.js Learn](https://nextjs.org/learn) - Next.js公式チュートリアル
+
+---
+
+**🚀 本日の目標達成: Claude Code × Next.js 14 で効率的な開発フローをマスターしよう！**
+
+### 📞 質問・フォローアップ
+- **GitHub Issues**: 技術的な質問や改善提案
+- **Discord**: リアルタイムな質疑応答
+- **次回予告**: Phase 2機能（外部API統合・リアルタイム協調）の実装編
+
+---
+
+*🤖 この講義資料はClaude Codeを活用して作成されました*
 
 ### 🎯 目的・コンセプト
 
